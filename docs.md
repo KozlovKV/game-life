@@ -5,6 +5,7 @@
     - [Keyboard handler](#keyboard-handler)
     - [Video buffer](#video-buffer)
     - [Blinker (bit changer)](#blinker-bit-changer)
+    - [32-bit row destructor](#32-bit-row-destructor)
 
 # Documentation
 ## Assembler
@@ -27,9 +28,9 @@ For more information about keys see [controls topic](#controls)
 
 ### Video buffer
 Multifunctional circuit that:
-- lets us save selected matrix row (32 bits)
-- sends all 32 rows to the matrix
-- gives value of row, byte and bit by X, Y values
+- lets us save selected matrix row (32 bits) (west)
+- sends all 32 rows to the matrix (east)
+- gives separated chosen row (south)
 
 *Full inputs/outputs description*
 
@@ -48,3 +49,14 @@ Multifunctional circuit that:
 Выходы:
 - 32 выхода по 32 бита, в одном из которых один бит был изменён
 - строка с изменённым битом длиной 32 бита
+
+### 32-bit row destructor
+Selects needed bit and byte containing its from 32-bit string
+
+Inputs:
+- `row` - 32 bit
+- `sel` - 5 bit 
+
+Outputs:
+- `byte` - 8 bit - byte containing selected bit
+- `bit` - 1 bit
