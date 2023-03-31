@@ -1,3 +1,5 @@
+# [КАК ПОЛЬЗОВАТЬСЯ ГИТОМ ВМЕСТЕ С ГИТХАБОМ](./gitInstruction.md)
+
 # Game "Life"
 Game "Life" for Digital platforms course in **Novosibirsk State University**. 
 
