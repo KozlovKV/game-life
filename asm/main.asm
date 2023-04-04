@@ -1,6 +1,3 @@
-asect -16
-stackOffset:
-
 asect 0xf0
 gameMode:
 
@@ -34,7 +31,7 @@ bytesInRow:
 
 asect 0x00
 start:
-	addsp stackOffset
+	addsp -16  # Move SP before I/O addresses
 
 	# place your main code here
 
