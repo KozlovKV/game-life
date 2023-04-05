@@ -16,6 +16,9 @@ IOX:
 asect 0xf5
 rowController:
 
+asect 32
+rowsCount:
+
 asect 0xf6
 fristByte:
 
@@ -35,19 +38,38 @@ start:
 
 	# ====
 	# Test code for row I/O system
-	ldi r0, rowController
-	ld r0, r1
-	ldi r0, fristByte
-	ldi r1, 0
-	ldi r2, lastByte
+	ldi r0, 0
+	ldi r1, rowsCount
 	while
-		cmp r0, r2
-	stays le
-		ld r0, r3
-		st r1, r3
-		inc r1
-		inc r0		
+		cmp r0, r1
+	stays lt
+		ldi r2, IOY
+		st r2, r0
+		push r0
+		push r1
+		
+		ldi r2, fristByte
+		ldi r3, lastByte
+		while
+			cmp r2, r3
+		stays le
+			st r2, r0
+			inc r2			
+			inc r0		
+		wend
+		ldi r2, rowController
+		st r2, r3
+		
+		pop r1
+		pop r0
+		inc r0
 	wend
+	
+	ldi r0, 4
+	ldi r2, IOY
+	st r2, r0
+	ldi r2, rowController
+	ld r2, r3	
 	# ====
 
 	halt
