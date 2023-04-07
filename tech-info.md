@@ -70,7 +70,7 @@
 Из этого алгоритма можем выделить следующие подпрограммы:
 - Запись целого поля в память
 - Отправка строки в видеобуффер
-- Циклический инкримент
+- Циклический инкремент
 - Циклический декремент
 - Получение конкретного бита из байта
 - Установка нужного значения конкретного бита в байте (без влияния на остальные)
@@ -81,6 +81,7 @@
 - Состояние игры (0 или 1) - `0x00`
 - Байт условий рождения - `0x01`
 - Байт условий жизни - `0x02`
+- Новая строка матрицы - `0x10`-`0x13`
 - Всё поле будет располагаться в 128-ми ячейках памяти `0x70`-`0xef`.
 
 Начальная позиция стэка - `0x70`
@@ -96,3 +97,74 @@ IO регистры будут перехватывать адреса ОЗУ `0
   - Когда сюда отправляется запрос на запись, значение строки из последующих 4 байтов отправляется записывается в строку `Y` видеобуфера. 
   - Когда отправляется запрос на чтение, выгружает в следующие 4 регистра строку по индексу `Y`
 - `0xf6`-`0xf9` - READ / WRITE - 4 регистра для выбранной строки в порядке little-endian (при запросе на чтение будет загружаться из буфера, при запросе на запись будет отправлять значение во временное хранилище)
+
+### Псевдокод
+Псевдокод:
+```pseudo
+getField:
+  fieldPtr = 0x70
+  while fieldPtr <= 0xef:
+    read IORow, NULL
+    for rowIOPtr = 0xf6 to 0xf9
+      read rowIOPtr, rowByte
+      save fieldPtr, rowByte
+      fieldPtr++
+rts
+
+macro cycledInc $1:
+  $1++
+  $1 &= 0b00011111
+
+macro cycledDec $1:
+  $1--
+  $1 &= 0b00011111
+
+getBit: # принимает byte и bitIndex
+  byte << bitIndex
+  bit = byte & 1 # возвращаемое значение
+rts
+
+setBit: # принимает byte, bit и bitIndex
+  bit >>= bitIndex
+  byte ^= bit # Возвращаемое значение
+rts
+
+macro getFieldByteAddr $1 $2: # $1 - y, $2 - номер байта в строке
+  $1 = 0x70 + 4*$1 + $2
+
+getNewByteState: # принимает значения newByte y byteIndex
+  tmpY = y
+  getFieldByteAddr tmpY byteIndex
+  save tmpY, currentByte # В tmpY записалось значение из макроса
+  x = byteIndex * 8
+  for bitIndex = 0 to 7:
+    
+    # Вот тут будет самая интересная часть, потому что надо придумать, как именно удачнее считать кол-во окружающих битов, чтобы это заняло меньше всего тактов (в частности, лучше как можно реже обращаться к памяти всего поля). На мой взгляд, для этого имеет смысл сразу получить байты над и под нужным нам - включая текущий байт поля этого хватит для счёта всех битов вокруг 1-6. Для нулевого и седьмого будет необходимо запросить ещё по 3 байта
+
+    
+
+    x++ 
+rts
+
+main:
+while gameMode == 0:
+read IOGameMode, gameMode
+
+read IOBirth, birthBits
+save InternalBirth, birthBits
+
+read IOSurvival, survivalBits
+save InternalSurvival, survivalBits
+
+while 1:
+  jsr getField
+
+  for y = 0 to 31:
+    newByte = 0
+    for byteIndex = 0 to 3:
+      jsr getNewByteState # Использует значения: newByte y byteIndex
+      IORowByteAddr = IORowFirstByte + internalByteIndex
+      save IORowByteAddr, newByte
+    save IOY, y
+    save IORow, NULL
+```
