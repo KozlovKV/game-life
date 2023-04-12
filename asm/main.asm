@@ -59,6 +59,15 @@ IORowLastByte:
   ### Place for subroutines ###
 #===============================
 
+macro fieldInc/2
+	ldi $2, 0x90  # Negatated 0x70
+	add $2, $1
+	inc $1
+	shl $1
+	shra $1
+	neg $2
+	add $2, $1
+mend
 
 #===============================
 
@@ -72,48 +81,55 @@ start:
 		ld r1, r0
 		tst r0
 	until nz
-	
-	# This part can be excluded because we can read conditions directly from I/O regs.
-	ldi r1, IOBirthConditions
-	ld r1, r0
-	ldi r1, birthConditions
-	st r1, r0
-	ldi r1, IODeathConditions
-	ld r1, r0
-	ldi r1, deathConditions
-	st r1, r0
-	# end of easy excluded part
 
 main:
 
-	# Load field from videobuffer
-	ldi r0, firstFieldByte
-	ldi r3, 0 # Y position (row)
+	
+	
+	# Save addresses of firstEnv
+	ldi r0, envFirstByteFieldAddr
+	ldi r1, 0xef
+	st r0, r1
+	inc r0
+	ldi r1, 0xec
+	st r0, r1
+	inc r0
+	inc r1
+	st r0, r1
+	inc r0
+	ldi r1, 0x73
+	st r0, r1
+	inc r0
+	ldi r1, 0x70
+	st r0, r1
+	inc r0
+	inc r1
+	st r0, r1
+	inc r0
+	ldi r1, 0x83
+	st r0, r1
+	inc r0
+	ldi r1, 0x80
+	st r0, r1
+	inc r0
+	inc r1
+	st r0, r1
+	inc r0
+	
+	ldi r1, 0
 	do
-		# Tell logisim with which row we will interact
-		ldi r1, IOY
-		st r1, r3
-		
-		# Send read signal for row registers
-		ldi r1, IORowController
-		ld r1, r1  # second arg. is a blank
-		
-		# Read data from row regs and save to field
-		ldi r1, IORowFirstByte
-		do
-			ld r1, r2
+		ldi r0, envFirstByteFieldAddr
+		do 
+			ld r0, r2
+			fieldInc r2, r3
 			st r0, r2
 			inc r0
-			inc r1
-			ldi r2, IORowLastByte
-			cmp r1, r2
+			ldi r3, envLastByteFieldAddr
+			cmp r0, r3
 		until gt
-		inc r3
-		ldi r1, lastFieldByte
-		cmp r0, r1
-	until hi
-	
-	# Placeholder for env cycle
+		inc r1
+		tst r1
+	until z
 br main
 
 halt
