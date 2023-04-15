@@ -20,6 +20,12 @@ envFirstByteFieldAddr:
 asect 0x28
 envLastByteFieldAddr:
 
+asect 0x30
+leftCurrentY:
+
+asect 0x31
+leftCurrentX:
+
 asect 0x70
 firstFieldByte:
 
@@ -59,6 +65,16 @@ IORowLastByte:
   ### Place for subroutines ###
 #===============================
 
+macro getRowBeginAddr/2
+# Gets row index and returns addr of begin of its row
+# 1st reg - result
+# 2nd reg - helping
+	ldi $2, 0x70
+	shla $1
+	shla $1
+	add $2, $1
+mend
+
 macro fieldInc/2
 	ldi $2, 0x90  # Negatated 0x70
 	add $2, $1
@@ -82,53 +98,134 @@ start:
 		tst r0
 	until nz
 
+# This part can be excluded because we can read conditions directly from I/O regs.
+	ldi r1, IOBirthConditions
+	ld r1, r0
+	ldi r1, birthConditions
+	st r1, r0
+	ldi r1, IODeathConditions
+	ld r1, r0
+	ldi r1, deathConditions
+	st r1, r0
+	# end of easy excluded part
+
 main:
 
-	
-	
-	# Save addresses of firstEnv
-	ldi r0, envFirstByteFieldAddr
-	ldi r1, 0xef
-	st r0, r1
-	inc r0
-	ldi r1, 0xec
-	st r0, r1
-	inc r0
-	inc r1
-	st r0, r1
-	inc r0
-	ldi r1, 0x73
-	st r0, r1
-	inc r0
-	ldi r1, 0x70
-	st r0, r1
-	inc r0
-	inc r1
-	st r0, r1
-	inc r0
-	ldi r1, 0x83
-	st r0, r1
-	inc r0
-	ldi r1, 0x80
-	st r0, r1
-	inc r0
-	inc r1
-	st r0, r1
-	inc r0
-	
-	ldi r1, 0
+	# Load field from videobuffer
+	ldi r0, firstFieldByte
+	ldi r3, 0 # Y position (row)
 	do
-		ldi r0, envFirstByteFieldAddr
-		do 
-			ld r0, r2
-			fieldInc r2, r3
+		# Tell logisim with which row we will interact
+		ldi r1, IOY
+		st r1, r3
+		# Send read signal for row registers
+		ldi r1, IORowController
+		ld r1, r1  # second arg. is a blank
+		# Read data from row regs and save to field
+		ldi r1, IORowFirstByte
+		do
+			ld r1, r2
 			st r0, r2
 			inc r0
-			ldi r3, envLastByteFieldAddr
-			cmp r0, r3
+			inc r1
+			ldi r2, IORowLastByte
+			cmp r1, r2
 		until gt
+		inc r3
+		ldi r1, lastFieldByte
+		cmp r0, r1
+	until hi
+	
+	
+	# Count new bytes states
+	ldi r0, 31 # Y of first surrounding byte
+	ldi r2, leftCurrentY
+	st r2, r0
+	ldi r1, 3 # X of first surrounding byte
+	ldi r2, leftCurrentX
+	st r2, r1
+	ldi r2, 128 # iterator
+	ldi r3, 4
+	do
+		push r2
+		push r3
+		ldi r0, leftCurrentY
+		ld r0, r0
+		ldi r1, leftCurrentX
+		ld r1, r1
+		ldi r3, envFirstByte
+		ldi r2, 3
+		push r2 
+		do 
+			push r0
+			getRowBeginAddr r0, r2
+			add r1, r0
+			ld r0, r0
+			st r3, r0
+			
+			pop r0
+			pop r2
+			dec r2
+			if
+				tst r2
+			is z
+				inc r0
+				ldi r2, 0b00011111
+				and r2, r0
+				ldi r1, leftCurrentX
+				ld r1, r1
+				ldi r2, 3
+				push r2
+			else
+				push r2
+				inc r1
+				ldi r2, 0b00000011
+				and r2, r1
+			fi
+			
+			
+			inc r3
+			ldi r2, envLastByte
+			cmp r3, r2
+		until gt
+		
+		push r0
+		
+		#########################################################
+		# HERE WILL BE MAIN CODE FOR COUNTING STATE OF NEW BYTE #
+		#########################################################
+		
+		
+		#########################################################
+		
+		
+		pop r0
+		
+		# Set next begin X
+		ldi r3, leftCurrentX
+		ld r3, r1
 		inc r1
-		tst r1
+		ldi r2, 0b00000011
+		and r2, r1
+		st r3, r1
+		
+		# Set next row value
+		pop r2
+		pop r3
+		dec r3 # DON'T CHANGED AFTER IT IN THIS CYCLE
+		if 
+			tst r3
+		is z
+			dec r0
+			dec r0
+			ldi r2, leftCurrentY
+			st r2, r0
+		fi
+				
+		
+		pop r2
+		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
+		tst r2
 	until z
 br main
 

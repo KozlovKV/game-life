@@ -1,6 +1,7 @@
 - [Documentation](#documentation)
   - [Assembler](#assembler)
   - [Logisim](#logisim)
+    - [Data-load cycle](#data-load-cycle)
     - [Controls](#controls)
     - [Keyboard handler](#keyboard-handler)
     - [Video buffer](#video-buffer)
@@ -12,6 +13,33 @@
 
 ## Logisim
 Harvard architecture on `CdM-8-mark8-full`.
+
+### Data-load cycle
+```asm
+  ldi r0, firstFieldByte
+	ldi r3, 0 # Y position (row)
+	do
+		# Tell logisim with which row we will interact
+		ldi r1, IOY
+		st r1, r3
+		# Send read signal for row registers
+		ldi r1, IORowController
+		ld r1, r1  # second arg. is a blank
+		# Read data from row regs and save to field
+		ldi r1, IORowFirstByte
+		do
+			ld r1, r2
+			st r0, r2
+			inc r0
+			inc r1
+			ldi r2, IORowLastByte
+			cmp r1, r2
+		until gt
+		inc r3
+		ldi r1, lastFieldByte
+		cmp r0, r1
+	until hi
+```
 
 ### Controls
 *Describe what key what do*
