@@ -61,10 +61,22 @@ IORowFirstByte:
 asect 0xf9
 IORowLastByte:
 
-#===============================
-  ### Place for subroutines ###
-#===============================
+asect 0xfa
+IOCPUStatus:
 
+# CPU statuses
+asect 0
+WAIT:
+
+asect 1
+READ_FIELD:
+
+asect 2
+PROCESS_FIELD:
+
+#==============================#
+#      Place for macroses      #
+#==============================#
 macro getRowBeginAddr/2
 # Gets row index and returns addr of begin of its row
 # 1st reg - result
@@ -85,12 +97,28 @@ macro fieldInc/2
 	add $2, $1
 mend
 
-#===============================
+macro changeCPUStatus/3
+# args 1, 2 - free regs
+# arg 3 - new status
+	ldi $1, IOCPUStatus
+	ldi $2, $3
+	st $1, $2
+mend
 
 asect 0x00
-start: 
+run start
+
+#==============================#
+#     Place for subroutines    #
+#==============================#
+
+#===============================
+
+start:
 	# Move SP before I/O and field addresses
 	addsp 0x70
+
+	changeCPUStatus r0, r1, WAIT
 
 	ldi r1, IOGameMode
 	do
@@ -98,7 +126,7 @@ start:
 		tst r0
 	until nz
 
-# This part can be excluded because we can read conditions directly from I/O regs.
+	# This part can be excluded because we can read conditions directly from I/O regs.
 	ldi r1, IOBirthConditions
 	ld r1, r0
 	ldi r1, birthConditions
@@ -110,7 +138,9 @@ start:
 	# end of easy excluded part
 
 main:
-
+	
+	changeCPUStatus r0, r1, READ_FIELD
+	
 	# Load field from videobuffer
 	ldi r0, firstFieldByte
 	ldi r3, 0 # Y position (row)
@@ -132,10 +162,12 @@ main:
 			cmp r1, r2
 		until gt
 		inc r3
-		ldi r1, lastFieldByte
-		cmp r0, r1
-	until hi
+		ldi r1, 0x20
+		cmp r3, r1
+	until ge
 	
+	
+	changeCPUStatus r0, r1, PROCESS_FIELD
 	
 	# Count new bytes states
 	ldi r0, 31 # Y of first surrounding byte
