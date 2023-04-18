@@ -1,19 +1,17 @@
 - [Documentation](#documentation)
-  - [Assembler](#assembler)
-  - [Logisim](#logisim)
-    - [Data-load cycle](#data-load-cycle)
-    - [Controls](#controls)
-    - [Keyboard handler](#keyboard-handler)
-    - [Video buffer](#video-buffer)
-    - [Blinker (bit changer)](#blinker-bit-changer)
-    - [32-bit row destructor](#32-bit-row-destructor)
+	- [Assembler](#assembler)
+		- [Data-load cycle](#data-load-cycle)
+	- [Logisim](#logisim)
+		- [Controls](#controls)
+			- [Using NUM-block](#using-num-block)
+			- [Using main keyboard part](#using-main-keyboard-part)
+		- [Keyboard handler](#keyboard-handler)
+		- [Video buffer](#video-buffer)
+		- [Blinker (bit changer)](#blinker-bit-changer)
+		- [32-bit row destructor](#32-bit-row-destructor)
 
 # Documentation
 ## Assembler
-
-## Logisim
-Harvard architecture on `CdM-8-mark8-full`.
-
 ### Data-load cycle
 ```asm
   ldi r0, firstFieldByte
@@ -41,8 +39,30 @@ Harvard architecture on `CdM-8-mark8-full`.
 	until hi
 ```
 
+## Logisim
+Harvard architecture on `CdM-8-mark8-full`.
+
 ### Controls
-*Describe what key what do*
+
+**All keys are working only while we are in the `setting` game mode**
+
+#### Using NUM-block
+Cursor moving:
+KEY     | DIRECTION    | X DELTA | Y DELTA
+:-:     | :-:          | :-:     | :-:
+`NUM 1` | bottom-left  | `-1`    | `+1`
+`NUM 2` | bottom       | `0`     | `+1`
+`NUM 3` | bottom-right | `+1`    | `+1`
+`NUM 4` | left         | `-1`    | `0`
+`NUM 6` | right        | `+1`    | `0`
+`NUM 7` | top-left     | `-1`    | `-1`
+`NUM 8` | top          | `0`     | `-1`
+`NUM 9` | top-right    | `+1`    | `-1`
+
+`NUM 5` - change state of selected cell.
+
+#### Using main keyboard part
+*Add info after adding key handlers*
 
 ### Keyboard handler
 This circuit considers 8-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:
