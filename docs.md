@@ -1,5 +1,6 @@
 - [Documentation](#documentation)
 	- [Assembler](#assembler)
+		- [RAM distribution](#ram-distribution)
 		- [Data-load cycle](#data-load-cycle)
 	- [Logisim](#logisim)
 		- [Controls](#controls)
@@ -12,6 +13,43 @@
 
 # Documentation
 ## Assembler
+Main parts of CdM-8 instructions' block:
+- Wait start signal
+- Load birth and death conditions (*optional*)
+- Eternal main cycle
+  - Load field from [video buffer](#video-buffer) to RAM
+  - Cycle processing field
+    - Calculate 1 new row (one by one 4 bytes)
+    - Write new row to video buffer
+
+### RAM distribution
+- `0x00` - game state (`0` - wait, `1` - simulate)
+- `0x01` - birth conditions
+- `0x02` - death conditions
+- `0x70`-`0xef` - these 128 bytes contains all matrix rows from 0 to 31 where in little-endian format
+  - *thus cell `0x70` contains matrix points `0-7` of first row*
+- `0x10`-`0x18` - bytes surrounding processed byte
+  - `0x10` - top left relative to the current one
+  - `0x11` - top relative to the current one
+  - `0x12` - top right relative to the current one
+  - `0x13` - left relative to the current one
+  - **`0x14` - byte that we're processing**
+  - `0x15` - right relative to the current one
+  - `0x16` - bottom left relative to the current one
+  - `0x17` - bottom relative to the current one
+  - `0x18` - bottom right relative to the current one
+  - *Simple human-pleasant visualization:*
+```
+0x10 | 0x11 | 0x12
+-----|------|-----
+0x13 | 0x14 | 0x15
+-----|------|-----
+0x16 | 0x17 | 0x18
+```
+- Addresses of bytes above in field area - `0x20`-`0x28` (the order is the same as above)
+
+Stack initial position - `0x70`
+
 ### Data-load cycle
 ```asm
   ldi r0, firstFieldByte
