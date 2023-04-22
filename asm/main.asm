@@ -248,6 +248,7 @@ main:
 			dec r0
 			ldi r2, leftCurrentY
 			st r2, r0
+			ldi r3, 4
 		fi
 				
 		
