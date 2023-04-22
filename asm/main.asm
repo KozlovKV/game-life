@@ -142,8 +142,8 @@ main:
 	changeCPUStatus r0, r1, READ_FIELD
 	
 	# Load field from videobuffer
-	ldi r0, firstFieldByte
-	ldi r3, 0 # Y position (row)
+	ldi r0, lastFieldByte
+	ldi r3, 0x1f # Y position (row)
 	do
 		# Tell logisim with which row we will interact
 		ldi r1, IOY
@@ -152,19 +152,17 @@ main:
 		ldi r1, IORowController
 		ld r1, r1  # second arg. is a blank
 		# Read data from row regs and save to field
-		ldi r1, IORowFirstByte
+		ldi r1, IORowLastByte
 		do
 			ld r1, r2
 			st r0, r2
-			inc r0
-			inc r1
-			ldi r2, IORowLastByte
+			dec r0
+			dec r1
+			ldi r2, IORowFirstByte
 			cmp r1, r2
-		until gt
-		inc r3
-		ldi r1, 0x20
-		cmp r3, r1
-	until ge
+		until lt
+		dec r3
+	until lt
 	
 	
 	changeCPUStatus r0, r1, PROCESS_FIELD
@@ -199,7 +197,6 @@ main:
 			pop r2
 			dec r2
 			if
-				tst r2
 			is z
 				inc r0
 				ldi r2, 0b00011111
@@ -246,7 +243,6 @@ main:
 		pop r3
 		dec r3 # DON'T CHANGED AFTER IT IN THIS CYCLE
 		if 
-			tst r3
 		is z
 			dec r0
 			dec r0
@@ -257,7 +253,6 @@ main:
 		
 		pop r2
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
-		tst r2
 	until z
 br main
 

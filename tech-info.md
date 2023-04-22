@@ -92,7 +92,6 @@
   - `0x16` - нижний левый относительно текущего
   - `0x17` - нижний относительно текущего
   - `0x18` - нижний правый относительно текущего
-- Адреса в поле для байтов, с которыми сейчас работаем - `0x20`-`0x28` (порядок тот же, что и у байтов)
 
 Начальная позиция стэка - `0x70`
 
@@ -110,78 +109,75 @@ IO регистры будут перехватывать адреса ОЗУ `0
 - `0xfa` - WRITE ONLY - отображает номер процесса, которым сейчас занят процессор. Используется для отладки
 
 ### Псевдокод
-**ЧИТАТЬ ОПАСНО ДЛЯ ЗДОРОВЬЯ**
+*Всё остальное уже реализовано (появится в документации... Когда-нибудь), так что здесь останутся только те части, что отвечают за расчёт нового байта:*
 
-Псевдокод:
 ```pseudo
-getField:
-  fieldPtr = 0x70
-  while fieldPtr <= 0xef:
-    read IORow, NULL
-    for rowIOPtr = 0xf6 to 0xf9
-      read rowIOPtr, rowByte
-      save fieldPtr, rowByte
-      fieldPtr++
+getBit:
+  # r0 - байт
+  # r1 - индекс интересующего нас бита
+  while r1 > 0: # Для экономии место лучше использовать do-until (держать в голове, что он исполняется, пока условие ложно!)
+    r0 >>= 1 
+    r1--
+  r1 = 1
+  r0 = r0 & r1
 rts
 
-macro cycledInc $1:
-  $1++
-  $1 &= 0b00011111
-
-macro cycledDec $1:
-  $1--
-  $1 &= 0b00011111
-
-getBit: # принимает byte и bitIndex
-  byte << bitIndex
-  bit = byte & 1 # возвращаемое значение
+invertBit:
+  # r0 - байт
+  # r1 - индекс бита, который надо инвертировать
+  r2 = 1 # маска
+  while r1 > 0:
+    mask <<= 1 # Убедиться, что заполняется число нулями
+    r1--
+  r0 = r0 xor r2
 rts
 
-setBit: # принимает byte, bit и bitIndex
-  bit >>= bitIndex
-  byte ^= bit # Возвращаемое значение
+getNewBit:
+  # r0 - изменяемый байт
+  # r1 - индекс бита
+  # r2 - сумма битов вокруг
+  push r0
+  push r1
+  getBit() # Проверяем, в каком состоянии текущий бит
+  if r0 == 0:
+    load r0, birthConditions
+  else:
+    load r0, deathConditions
+  move r2 to r1
+  r1--
+  getBit() # За счёт того, что условия хранятся в виде битовых массивов, мы легко проверяем их выполнение при помощи индексного запроса
+  move r0 to r2
+  pop r1
+  pop r0 # Если бы не сдвинули стэк обратно тут, то пришлось бы делать это в цикле, что было бы менее оптимально по памяти
+  if r2 == 1:
+    invertBit()
 rts
 
-macro getFieldByteAddr $1 $2: # $1 - y, $2 - номер байта в строке
-  $1 = 0x70 + 4*$1 + $2
+getNewByteState:
+  # В эту функцию не передаётся ничего. 
+  # Все данные хранятся в ячейках 0x10-0x18 (см. "Внутренние данные")
+  # Вернуть новый байт надо в r0
+  
+  # Обработка бита по индексу 1. Подумать потом, как сделать цикл универсальным для всех битов
+  r0 = 0x11 # Адрес текущего байта
+  r1 = 0 # Текущий бит
+  r2 = 0 # Значение суммы
+  r3 = 8 # Счётчик
+  while r3 > 0:
+    push r0
+    load r0, r0
 
-getNewByteState: # принимает значения newByte y byteIndex
-  tmpY = y
-  getFieldByteAddr tmpY byteIndex
-  save tmpY, currentByte # В tmpY записалось значение из макроса
-  x = byteIndex * 8
-  for bitIndex = 0 to 7:
-    
-    # Вот тут будет самая интересная часть, потому что надо придумать, как именно удачнее считать кол-во окружающих битов, чтобы это заняло меньше всего тактов (в частности, лучше как можно реже обращаться к памяти всего поля). На мой взгляд, для этого имеет смысл сразу получить байты над и под нужным нам - включая текущий байт поля этого хватит для счёта всех битов вокруг 1-6. Для нулевого и седьмого будет необходимо запросить ещё по 3 байта
 
-    
 
-    x++ 
-rts
+    cycledInc r1
+    if r3 == 5:
+      cycledInc r1
+    if r3 == 6 or r3 == 4:
+      r1 = 0
+      r0 += 3
+    r3--
+  
 
-main:
-while gameMode == 0:
-read IOGameMode, gameMode
-
-read IOBirth, birthBits
-save InternalBirth, birthBits
-
-read IOSurvival, survivalBits
-save InternalSurvival, survivalBits
-
-while 1:
-  jsr getField
-
-  for y = 0 to 31:
-    newByte = 0
-    for byteIndex = 0 to 3:
-      
-      jsr getNewByteState # Использует значения: newByte y byteIndex
-
-      IORowByteAddr = IORowFirstByte + internalByteIndex
-      save IORowByteAddr, newByte
-    save IOY, y
-    save IORow, NULL
 ```
 
 ## Дополнительные идеи
