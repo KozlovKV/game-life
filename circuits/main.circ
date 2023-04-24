@@ -932,26 +932,27 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="4" loc="(2220,250)" name="ROM">
       <a name="addrWidth" val="16"/>
       <a name="contents">addr/data: 16 8
-256*0 ee 1 cd 70 d0 fa d1
-0 a1 d1 f0 b4 0 e0 fd
-d1 f1 b4 d1 1 a4 d1 f2
-b4 d1 2 a4 d0 fa d1 1
-a1 d0 ef d3 1f d1 f3 a7
-d1 f5 b5 d1 f9 b6 a2 88
-89 d2 f6 76 ea f8 8b ea
-ed d0 fa d1 2 a1 d0 1f
-d2 30 a8 d1 3 d2 31 a9
-d2 80 d3 4 c2 c3 d0 30
-b0 d1 31 b5 d3 10 d2 3
-c2 c0 d2 70 94 94 18 14
-b0 ac c4 c6 8a e1 d 8c
-d2 1f 48 d1 31 b5 d2 3
-c2 ee 6 c2 8d d2 3 49
-8f d2 18 7e ed dc c0 c4
-d3 31 bd 8d d2 3 49 ad
-c6 c7 8b e1 8 88 88 d2
-30 a8 d3 4 c6 8a e1 b5
-ee 83 d4
+e0 4 dd 0 1 251*0 cd 40
+d0 fa d1 40 a1 d1 f0 b4
+0 e0 fd d1 f1 b4 d1 41
+a4 d1 f2 b4 d1 42 a4 d0
+fa d1 41 a1 d0 ef d3 1f
+d1 f3 a7 d1 f5 b5 d1 f9
+b6 a2 88 89 d2 f6 76 ea
+f8 8b ea ed d0 fa d1 42
+a1 d0 1f d2 50 a8 d1 3
+d2 51 a9 d2 80 d3 4 c2
+c3 d0 50 b0 d1 51 b5 d3
+60 d2 3 c2 c0 d2 70 94
+94 18 14 b0 ac c4 c6 8a
+e1 d 8c d2 1f 48 d1 51
+b5 d2 3 c2 ee 6 c2 8d
+d2 3 49 8f d2 68 7e ed
+dc ce cf d3 51 bd 8d d2
+3 49 ad c6 c7 8b e1 b
+88 88 d2 1f 48 d2 50 a8
+d3 4 c6 8a e1 b2 e0 80
+d4
 </a>
     </comp>
     <comp lib="3" loc="(980,1520)" name="Comparator"/>
@@ -1313,6 +1314,7 @@ ee 83 d4
     <comp lib="6" loc="(301,706)" name="Text"/>
     <comp lib="0" loc="(930,1440)" name="Constant">
       <a name="width" val="8"/>
+      <a name="value" val="0x41"/>
     </comp>
     <comp lib="0" loc="(650,460)" name="Tunnel">
       <a name="facing" val="south"/>
@@ -1610,12 +1612,12 @@ ee 83 d4
     <comp lib="3" loc="(1290,2880)" name="Comparator"/>
     <comp lib="0" loc="(930,1510)" name="Constant">
       <a name="width" val="8"/>
-      <a name="value" val="0x2"/>
+      <a name="value" val="0x42"/>
     </comp>
     <comp loc="(1010,300)" name="row reverser"/>
     <comp lib="0" loc="(930,1370)" name="Constant">
       <a name="width" val="8"/>
-      <a name="value" val="0x0"/>
+      <a name="value" val="0x40"/>
     </comp>
     <comp lib="3" loc="(720,1310)" name="Comparator"/>
     <comp loc="(1010,250)" name="row reverser"/>
