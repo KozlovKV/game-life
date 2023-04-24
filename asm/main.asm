@@ -1,33 +1,30 @@
+asect 0
+goto eq, start
+
 # Internal data addresses
-asect 0x00
+asect 0x40
 gameMode:
 WAIT:
 
-asect 0x01
+asect 0x41
 birthConditions:
 READ_FIELD:
 
-asect 0x02
+asect 0x42
 deathConditions:
 PROCESS_FIELD:
 
-asect 0x10
+asect 0x60
 envFirstByte:
 
-asect 0x18
+asect 0x68
 envLastByte:
 
-asect 0x20
-envFirstByteFieldAddr:
+asect 0x50
+topLeftY:
 
-asect 0x28
-envLastByteFieldAddr:
-
-asect 0x30
-leftCurrentY:
-
-asect 0x31
-leftCurrentX:
+asect 0x51
+topLeftX:
 
 asect 0x70
 firstFieldByte:
@@ -82,6 +79,7 @@ macro getRowBeginAddr/2
 mend
 
 macro fieldInc/2
+# Cycle increment in range [0x70, 0xef]
 	ldi $2, 0x90  # Negatated 0x70
 	add $2, $1
 	inc $1
@@ -92,6 +90,7 @@ macro fieldInc/2
 mend
 
 macro changeCPUStatus/3
+# change debugging CPU process status
 # args 1, 2 - free regs
 # arg 3 - new status
 	ldi $1, IOCPUStatus
@@ -101,7 +100,6 @@ mend
 #===============================
 
 asect 0x100
-goto true, start
 #==============================#
 #     Place for subroutines    #
 #==============================#
@@ -110,17 +108,18 @@ goto true, start
 
 start:
 	# Move SP before I/O and field addresses
-	setsp 0x70
+	setsp 0x40
 
 	changeCPUStatus r0, r1, WAIT
 
+	# Waiting for IOGameMode I/O reg. != 0
 	ldi r1, IOGameMode
 	do 
 		ld r1, r0
 		tst r0
 	until nz
 
-	# This part can be excluded because we can read conditions directly from I/O regs.
+	# Read birth and death conditions from I/O regs.
 	ldi r1, IOBirthConditions
 	ld r1, r0
 	ldi r1, birthConditions
@@ -129,7 +128,6 @@ start:
 	ld r1, r0
 	ldi r1, deathConditions
 	st r1, r0
-	# end of easy excluded part
 
 main:
 	
@@ -137,7 +135,7 @@ main:
 	
 	# Load field from videobuffer
 	ldi r0, lastFieldByte
-	ldi r3, 0x1f # Y position (row)
+	ldi r3, 0x1f # Y position (row) (will goes from last to first)
 	do
 		# Tell logisim with which row we will interact
 		ldi r1, IOY
@@ -146,7 +144,7 @@ main:
 		ldi r1, IORowController
 		ld r1, r1  # second arg. is a blank
 		# Read data from row regs and save to field
-		ldi r1, IORowLastByte
+		ldi r1, IORowLastByte # Begin from last byte
 		do
 			ld r1, r2
 			st r0, r2
@@ -162,57 +160,70 @@ main:
 	changeCPUStatus r0, r1, PROCESS_FIELD
 	
 	# Count new bytes states
-	ldi r0, 31 # Y of first surrounding byte
-	ldi r2, leftCurrentY
+	ldi r0, 31 # Y of first surrounding byte (top-left)
+	ldi r2, topLeftY
 	st r2, r0
 	ldi r1, 3 # X of first surrounding byte
-	ldi r2, leftCurrentX
+	ldi r2, topLeftX
 	st r2, r1
 	ldi r2, 128 # iterator
-	ldi r3, 4
+	ldi r3, 4 # sub iterator for changing topLeftY value
 	do
+		# Save iterators
 		push r2
 		push r3
-		ldi r0, leftCurrentY
+
+		# Get top-left byte coords
+		ldi r0, topLeftY
 		ld r0, r0
-		ldi r1, leftCurrentX
+		ldi r1, topLeftX
 		ld r1, r1
+
+		# Initital data for writing surrounding bytes
 		ldi r3, envFirstByte
-		ldi r2, 3
-		push r2 
+		ldi r2, 3 # Iterator for changing surrounding Y
+		push r2 # Save iterator
 		do 
-			push r0
+			push r0 # Save surrounding cell's Y
+
+			# Get cell addr. for byte
 			getRowBeginAddr r0, r2
 			add r1, r0
+			# Load byte value and save to environment cell
 			ld r0, r0
 			st r3, r0
 			
-			pop r0
-			pop r2
+			pop r0 # Get surrounding cell's Y
+			pop r2 # Get iterator for changing surrounding cell's Y
 			dec r2
 			if
 			is z
-				inc r0
+				# Weather iterator == 0
+				# Cycled inc for Y
+				inc r0 
 				ldi r2, 0b00011111
 				and r2, r0
-				ldi r1, leftCurrentX
+				# Reset X value to beggining
+				ldi r1, topLeftX
 				ld r1, r1
+				# Update and save iterator for changing surrounding cell's Y
 				ldi r2, 3
 				push r2
 			else
+				# Weather iterator != 0 simply save its and cycle increment X
 				push r2
 				inc r1
 				ldi r2, 0b00000011
 				and r2, r1
 			fi
 			
-			
+			# Increment addr. for evnironment array and check weather we finished surrounding bytes saving 
 			inc r3
 			ldi r2, envLastByte
 			cmp r3, r2
 		until gt
 		
-		push r0
+		pushall # Save all values before processing new byte
 		
 		#########################################################
 		# HERE WILL BE MAIN CODE FOR COUNTING STATE OF NEW BYTE #
@@ -221,35 +232,43 @@ main:
 		
 		#########################################################
 		
+		popall
 		
-		pop r0
-		
-		# Set next begin X
-		ldi r3, leftCurrentX
+		# Set next X for top-left cell
+		ldi r3, topLeftX
 		ld r3, r1
 		inc r1
 		ldi r2, 0b00000011
 		and r2, r1
 		st r3, r1
 		
-		# Set next row value
+		# Set next row value if subiterator == 0
 		pop r2
-		pop r3
+		pop r3 # Get row subiterator
 		dec r3 # DON'T CHANGED AFTER IT IN THIS CYCLE
 		if 
 		is z
 			dec r0
 			dec r0
-			ldi r2, leftCurrentY
+			ldi r2, 0b00011111
+			and r2, r0
+			ldi r2, topLeftY
 			st r2, r0
-			ldi r3, 4
+			ldi r3, 4 # Update row subiterator
+
+			# Save new row to buffer
+			ldi r2, IOY
+			st r2, r0
+			ldi r2, IORowController
+			st r2, r0
+
 		fi
 				
 		
-		pop r2
+		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
 	until z
-goto true, main
+goto eq, main
 
 halt
 end
