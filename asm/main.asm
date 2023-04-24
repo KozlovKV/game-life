@@ -1,12 +1,15 @@
 # Internal data addresses
 asect 0x00
 gameMode:
+WAIT:
 
 asect 0x01
 birthConditions:
+READ_FIELD:
 
 asect 0x02
 deathConditions:
+PROCESS_FIELD:
 
 asect 0x10
 envFirstByte:
@@ -64,15 +67,6 @@ IORowLastByte:
 asect 0xfa
 IOCPUStatus:
 
-# CPU statuses
-asect 0
-WAIT:
-
-asect 1
-READ_FIELD:
-
-asect 2
-PROCESS_FIELD:
 
 #==============================#
 #      Place for macroses      #
@@ -104,10 +98,10 @@ macro changeCPUStatus/3
 	ldi $2, $3
 	st $1, $2
 mend
+#===============================
 
-asect 0x00
-run start
-
+asect 0x100
+goto true, start
 #==============================#
 #     Place for subroutines    #
 #==============================#
@@ -116,12 +110,12 @@ run start
 
 start:
 	# Move SP before I/O and field addresses
-	addsp 0x70
+	setsp 0x70
 
 	changeCPUStatus r0, r1, WAIT
 
 	ldi r1, IOGameMode
-	do
+	do 
 		ld r1, r0
 		tst r0
 	until nz
@@ -255,7 +249,7 @@ main:
 		pop r2
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
 	until z
-br main
+goto true, main
 
 halt
 end
