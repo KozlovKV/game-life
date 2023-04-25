@@ -2,7 +2,7 @@
 - [Assembler](#assembler)
 	- [RAM distribution](#ram-distribution)
 		- [Cells referring to I/O regs.](#cells-referring-to-io-regs)
-	- [Data-load cycle](#data-load-cycle)
+	- [Code description](#code-description)
 - [Logisim](#logisim)
 	- [Main concept](#main-concept)
 	- [Controls](#controls)
@@ -52,64 +52,42 @@ Main parts of CdM-8 instructions' block:
     - Write new row to video buffer
 
 ## RAM distribution
-- `0x00` - game state (`0` - wait, `1` - simulate)
-- `0x01` - birth conditions
-- `0x02` - death conditions
-- `0x70`-`0xef` - these 128 bytes contains all matrix rows from 0 to 31 where in little-endian format
-  - *thus cell `0x70` contains matrix points `0-7` of first row*
-- `0x10`-`0x18` - bytes surrounding processed byte
-  - `0x10` - top left relative to the current one
-  - `0x11` - top relative to the current one
-  - `0x12` - top right relative to the current one
-  - `0x13` - left relative to the current one
-  - **`0x14` - byte that we're processing**
-  - `0x15` - right relative to the current one
-  - `0x16` - bottom left relative to the current one
-  - `0x17` - bottom relative to the current one
-  - `0x18` - bottom right relative to the current one
+- `0x40` - game state (`0` - wait, `1` - simulate)
+- `0x41` - birth conditions
+- `0x42` - death conditions
+- `0x60`-`0x68` - bytes surrounding processed byte
+  - `0x60` - top left relative to the current one
+  - `0x61` - top relative to the current one
+  - `0x62` - top right relative to the current one
+  - `0x63` - left relative to the current one
+  - **`0x64` - byte that we're processing**
+  - `0x65` - right relative to the current one
+  - `0x66` - bottom left relative to the current one
+  - `0x67` - bottom relative to the current one
+  - `0x68` - bottom right relative to the current one
   - *Simple human-pleasant visualization:*
 ```
-0x10 | 0x11 | 0x12
+0x60 | 0x61 | 0x62
 -----|------|-----
-0x13 | 0x14 | 0x15
+0x63 | 0x64 | 0x65
 -----|------|-----
-0x16 | 0x17 | 0x18
+0x66 | 0x67 | 0x68
 ```
-- Addresses of bytes above in field area - `0x20`-`0x28` (the order is the same as above)
+- 2 cells below are used for saving surrounding bytes:
+  - `0x50` - Y coord. of top left current cell
+  - `0x51` - top left current cell byte index in Y row
+- `0x70`-`0xef` - these 128 bytes contains all matrix rows from 0 to 31 where in little-endian format
+  - *thus cell `0x70` contains matrix points `0-7` of first row*
 
-Stack initial position - `0x70`
+**Stack initial position - `0x40`**
 
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
 
 See detailed description in [Logisim topic](#io-registers)
 
-## Data-load cycle
-```asm
-  ldi r0, firstFieldByte
-	ldi r3, 0 # Y position (row)
-	do
-		# Tell logisim with which row we will interact
-		ldi r1, IOY
-		st r1, r3
-		# Send read signal for row registers
-		ldi r1, IORowController
-		ld r1, r1  # second arg. is a blank
-		# Read data from row regs and save to field
-		ldi r1, IORowFirstByte
-		do
-			ld r1, r2
-			st r0, r2
-			inc r0
-			inc r1
-			ldi r2, IORowLastByte
-			cmp r1, r2
-		until gt
-		inc r3
-		ldi r1, lastFieldByte
-		cmp r0, r1
-	until hi
-```
+## Code description
+*Will be soon*
 
 # Logisim
 Harvard architecture on `CdM-8-mark8-full`.
