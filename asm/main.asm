@@ -21,8 +21,14 @@ envTopLeftByte:
 asect 0x61
 envTopByte:
 
+asect 0x63
+envLeftByte:
+
 asect 0x64
 envCentreByte:
+
+asect 0x66
+envBottomLeftByte:
 
 asect 0x68
 envLastByte:
@@ -128,67 +134,6 @@ etNewByteState:
 	# Process 7 bit
 	# IN PROGRESS
 
-	ldi r2, 0 # Initial sum value
-	ldi r0, envTopLeftByte # First needed surrounding byte
-	ldi r1, 7 # TopLeftX
-
-	# TODO: CONTINUE
-
-	# Save index to stack for working in internal cycle below
-	push r1
-	push r1
-	ldi r3, 8 # iterator for decrementing
-	do
-		push r0 # save byte addr before getting bit
-		ld r0, r0
-
-		# check bit in surrounding byte
-		jsr getBit # Ещё не рализовано
-		if 
-			tst r0
-		is nz
-			inc r2 # sum++
-		fi
-
-		# increment bitIndex in surrounding bytes
-		inc r1
-
-		# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
-		ldi r0, 5
-		if 
-			cmp r0, r3
-		is eq
-			inc r1
-			pop r0 # get saved byte addr
-		fi 
-
-		# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
-		ldi r0, 4
-		cmp r0, r3
-		goto z, changeSurroundingByteAddr
-		ldi r0, 6
-		cmp r0, r3
-		goto z, changeSurroundingByteAddr
-		goto nz, sumCycleEnd
-
-		changeSurroundingByteAddr:
-			pop r0 # get saved byte addr
-			ldi r1, 3
-			add r1, r0 # byteAddr += 3
-			pop r1 # get topLeftX
-
-		sumCycleEnd:
-		dec r3
-	until le
-
-	# Load processed (initial) byte state
-	ldi r0, newByteAddr
-	ld r0, r0
-	pop r1
-	jsr processBitInByte # Ещё не реализовано
-	ldi r1, newByteAddr
-	st r1, r0
-
 	# =============
 
   # Process bits 6-1
@@ -263,6 +208,53 @@ etNewByteState:
   # =============
 	# Process 0 bit
 	# IN PROGRESS
+	ldi r2, 0 # Initial sum value
+
+	# Check 7th bit in topLeft byte
+	ldi r0, envTopLeftByte
+	ld r0, r0
+	ldi r1, 7 # TopLeftX
+	# check bit in surrounding byte
+	jsr getBit # Ещё не рализовано
+	if 
+		tst r0
+	is nz
+		inc r2 # sum++
+	fi
+
+	# check 7th bit in leftByte
+	ldi r0, envLeftByte
+	ld r0, r0
+	ldi r1, 7 # TopLeftX
+	# check bit in surrounding byte
+	jsr getBit # Ещё не рализовано
+	if 
+		tst r0
+	is nz
+		inc r2 # sum++
+	fi
+
+	# check 7th bit in bottomLeftByte
+	ldi r0, envBottomLeftByte
+	ld r0, r0
+	ldi r1, 7 # TopLeftX
+	# check bit in surrounding byte
+	jsr getBit # Ещё не рализовано
+	if 
+		tst r0
+	is nz
+		inc r2 # sum++
+	fi
+
+	# TODO: process bits 0,1 in top, bottom and 1 in centre
+
+	# Load processed (initial) byte state
+	ldi r0, newByteAddr
+	ld r0, r0
+	pop r1
+	jsr processBitInByte # Ещё не реализовано
+	ldi r1, newByteAddr
+	st r1, r0
 
   # =============
 
