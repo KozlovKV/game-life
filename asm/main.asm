@@ -1,5 +1,5 @@
 asect 0
-goto eq, start
+goto z, start
 
 # Internal data addresses
 asect 0x40
@@ -16,9 +16,20 @@ PROCESS_FIELD:
 
 asect 0x60
 envFirstByte:
+envTopLeftByte:
+
+asect 0x61
+envTopByte:
+
+asect 0x64
+envCentreByte:
 
 asect 0x68
 envLastByte:
+envBottomRightByte:
+
+asect 0x69
+newByteAddr:
 
 asect 0x50
 topLeftY:
@@ -103,7 +114,162 @@ asect 0x100
 #==============================#
 #     Place for subroutines    #
 #==============================#
+etNewByteState:
+	# Doesn't need any args - all data saved in RAM
+	# Returns new byte in r0
+  
+	# Save current byte initial state
+	ldi r0, envCentreByte
+  ld r0, r0
+	ldi r1, newByteAddr
+  st r1, r0
 
+	# =============
+	# Process 7 bit
+	# IN PROGRESS
+
+	ldi r2, 0 # Initial sum value
+	ldi r0, envTopLeftByte # First needed surrounding byte
+	ldi r1, 7 # TopLeftX
+
+	# TODO: CONTINUE
+
+	# Save index to stack for working in internal cycle below
+	push r1
+	push r1
+	ldi r3, 8 # iterator for decrementing
+	do
+		push r0 # save byte addr before getting bit
+		ld r0, r0
+
+		# check bit in surrounding byte
+		jsr getBit # Ещё не рализовано
+		if 
+			tst r0
+		is nz
+			inc r2 # sum++
+		fi
+
+		# increment bitIndex in surrounding bytes
+		inc r1
+
+		# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
+		ldi r0, 5
+		if 
+			cmp r0, r3
+		is eq
+			inc r1
+			pop r0 # get saved byte addr
+		fi 
+
+		# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
+		ldi r0, 4
+		cmp r0, r3
+		goto z, changeSurroundingByteAddr
+		ldi r0, 6
+		cmp r0, r3
+		goto z, changeSurroundingByteAddr
+		goto nz, sumCycleEnd
+
+		changeSurroundingByteAddr:
+			pop r0 # get saved byte addr
+			ldi r1, 3
+			add r1, r0 # byteAddr += 3
+			pop r1 # get topLeftX
+
+		sumCycleEnd:
+		dec r3
+	until le
+
+	# Load processed (initial) byte state
+	ldi r0, newByteAddr
+	ld r0, r0
+	pop r1
+	jsr processBitInByte # Ещё не реализовано
+	ldi r1, newByteAddr
+	st r1, r0
+
+	# =============
+
+  # Process bits 6-1
+
+	ldi r1, 6 # Processing bit index and iterator
+  do
+    push r1 # Save bit index
+    push r1 # Duplicate for fast working at the end of cycle
+    ldi r0, envTopByte # First needed surrounding byte
+		dec r1 # Get leftTopX
+
+		# Save index to stack for working in internal cycle below
+    push r1
+    push r1
+    ldi r2, 0 # Initial sum value
+		ldi r3, 8 # iterator for decrementing
+    do
+      push r0 # save byte addr before getting bit
+      ld r0, r0
+
+			# check bit in surrounding byte
+      jsr getBit # Ещё не рализовано
+      if 
+				tst r0
+			is nz
+        inc r2 # sum++
+			fi
+
+			# increment bitIndex in surrounding bytes
+      inc r1
+
+			# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
+			ldi r0, 5
+			if 
+				cmp r0, r3
+			is eq
+        inc r1
+				pop r0 # get saved byte addr
+			fi 
+
+			# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
+			ldi r0, 4
+			cmp r0, r3
+			goto z, changeSurroundingByteAddr
+			ldi r0, 6
+			cmp r0, r3
+			goto z, changeSurroundingByteAddr
+			goto nz, sumCycleEnd
+
+			changeSurroundingByteAddr:
+				pop r0 # get saved byte addr
+				ldi r1, 3
+				add r1, r0 # byteAddr += 3
+				pop r1 # get topLeftX
+
+			sumCycleEnd:
+      dec r3
+		until le
+
+    # Load processed (initial) byte state
+    ldi r0, newByteAddr
+    ld r0, r0
+    pop r1
+    jsr processBitInByte # Ещё не реализовано
+    ldi r1, newByteAddr
+    st r1, r0
+    pop r1
+    dec r1
+	until le
+	# ================
+
+  # =============
+	# Process 0 bit
+	# IN PROGRESS
+
+  # =============
+
+	# get return value
+	ldi r0, newByteAddr
+	ld r0, r0
+rts
 #===============================
 
 start:
@@ -135,7 +301,7 @@ main:
 	
 	# Load field from videobuffer
 	ldi r0, lastFieldByte
-	ldi r3, 0x1f # Y position (row) (will goes from last to first)
+	ldi r3, 0x1f # row Y index (will goes from last to first)
 	do
 		# Tell logisim with which row we will interact
 		ldi r1, IOY
@@ -268,7 +434,7 @@ main:
 		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
 	until z
-goto eq, main
+goto z, main
 
 halt
 end
