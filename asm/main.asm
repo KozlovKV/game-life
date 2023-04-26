@@ -164,11 +164,13 @@ invertBit:
 rts
 		
 processBitInByte:
+	# Половинчатая проработка случая, когда вокруг бита нет байтов
 	if
-		tst r1
+		tst r2
 	is z
 		rts
 	fi
+
 	push r0
 	push r1
 	jsr getBit
@@ -182,8 +184,6 @@ processBitInByte:
 	ld r0, r0
 	move r2, r1
 	dec r1
-
-	# ПРОРАБОТАТЬ СЛУЧАЙ, КОГДА ВОКРУГ НЕТ БИТОВ
 	jsr getBit
 	move r0, r2
 	pop r1
@@ -331,7 +331,7 @@ getNewByteState:
     ldi r0, newByteAddr
     ld r0, r0
     pop r1
-    jsr processBitInByte # Ещё не реализовано
+    jsr processBitInByte
     ldi r1, newByteAddr
     st r1, r0
     pop r1
@@ -521,7 +521,7 @@ main:
 		
 		push r0 # Save bottom row Y
 
-		jsr getNewByteState		
+		jsr getNewByteState
 
 		# Save new byte in I/O reg.
 		pop r2 # Get bottom row Y

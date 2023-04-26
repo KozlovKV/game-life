@@ -101,33 +101,33 @@ br getNewByteState
 #     Place for subroutines    #
 #==============================#
 getBit:
-	while
-		tst r1
-	stays nz
+	do
 		shr r0
 		if
-			tst r0
 		is z
 			break
 		fi
 		dec r1
-	wend
+	until z
 	ldi r1, 1
 	and r1, r0
 rts
 
 invertBit:
 	ldi r2, 1
-	while
-		tst r1
-	stays nz
+	do
 		shl r2
 		dec r1
-	wend
+	until z
 	xor r2, r0
 rts
 		
 processBitInByte:
+	if
+		tst r1
+	is z
+		rts
+	fi
 	push r0
 	push r1
 	jsr getBit
@@ -141,6 +141,7 @@ processBitInByte:
 	ld r0, r0
 	move r2, r1
 	dec r1
+
 	# ПРОРАБОТАТЬ СЛУЧАЙ, КОГДА ВОКРУГ НЕТ БИТОВ
 	jsr getBit
 	move r0, r2
@@ -251,13 +252,8 @@ getNewByteState:
       push r0 # save byte addr before getting bit
       ld r0, r0
 
-			# check bit in surrounding byte
-      jsr getBit
-      if 
-				tst r0
-			is nz
-        inc r2 # sum++
-			fi
+			jsr bitCheckWithSum
+
 
 			# increment bitIndex in surrounding bytes
       inc r1
