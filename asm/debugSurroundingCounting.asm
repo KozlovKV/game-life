@@ -91,58 +91,106 @@ IOCPUStatus:
 #==============================#
 #      Place for macroses      #
 #==============================#
+macro getRowBeginAddr/2
+# Gets row index and returns addr of begin of its row
+# 1st reg - result
+# 2nd reg - helping
+	ldi $2, 0x70
+	shla $1
+	shla $1
+	add $2, $1
+mend
 
+macro fieldInc/2
+# Cycle increment in range [0x70, 0xef]
+	ldi $2, 0x90  # Negatated 0x70
+	add $2, $1
+	inc $1
+	shl $1
+	shra $1
+	neg $2
+	add $2, $1
+mend
+
+macro cycledInc/2
+	inc $1
+	ldi $2, 0b00000111
+	and $2, $1
+mend
+
+macro cycledDec/2
+	dec $1
+	ldi $2, 0b00000111
+	and $2, $1
+mend
+
+macro changeCPUStatus/3
+# change debugging CPU process status
+# args 1, 2 - free regs
+# arg 3 - new status
+	ldi $1, IOCPUStatus
+	ldi $2, $3
+	st $1, $2
+mend
 #===============================
 
+asect 0b00000100
+baseBirthConditions:
+
+asect 0b11111001
+baseDeathConditions:
+
 asect 0
-addsp 0x40
 br getNewByteState
-#==============================#
-#     Place for subroutines    #
-#==============================#
+
+#===============================
 getBit:
-	do
-		shr r0
-		if
-		is z
-			break
-		fi
+	while
 		dec r1
-	until z
+	stays pl
+		shr r0
+		# if
+		# is z
+		# 	break
+		# fi
+	wend
 	ldi r1, 1
 	and r1, r0
 rts
 
 invertBit:
 	ldi r2, 1
-	do
-		shl r2
+	while
 		dec r1
-	until z
+	stays pl
+		shl r2
+	wend
 	xor r2, r0
 rts
 		
 processBitInByte:
+	# Половинчатая проработка случая, когда вокруг бита нет байтов
 	if
-		tst r1
+		tst r2
 	is z
 		rts
 	fi
+
 	push r0
 	push r1
 	jsr getBit
 	if
 		tst r0
 	is eq
-		ldi r0, birthConditions
+		# ldi r0, birthConditions
+		ldi r0, baseBirthConditions
 	else
-		ldi r0, deathConditions
+		# ldi r0, deathConditions
+		ldi r0, baseDeathConditions
 	fi
-	ld r0, r0
+	# ld r0, r0
 	move r2, r1
 	dec r1
-
-	# ПРОРАБОТАТЬ СЛУЧАЙ, КОГДА ВОКРУГ НЕТ БИТОВ
 	jsr getBit
 	move r0, r2
 	pop r1
@@ -168,12 +216,12 @@ rts
 getNewByteState:
 	# Doesn't need any args - all data saved in RAM
 	# Returns new byte in r0
-  
+
 	# Save current byte initial state
 	ldi r0, envCentreByte
-  ld r0, r0
+	ld r0, r0
 	ldi r1, newByteAddr
-  st r1, r0
+	st r1, r0
 
 	# =============
 	# Process 7 bit
@@ -233,72 +281,75 @@ getNewByteState:
 	st r1, r0
 
 	# =============
-
-  # Process bits 6-1
+	# Process bits 6-1
 
 	ldi r1, 6 # Processing bit index and iterator
-  do
-    push r1 # Save bit index
-    push r1 # Duplicate for fast working at the end of cycle
-    ldi r0, envTopByte # First needed surrounding byte
+	do
+		push r1 # Save bit index
+		push r1 # Duplicate for fast working at the end of cycle
+		ldi r0, envTopByte # First needed surrounding byte
 		dec r1 # Get leftTopX
 
 		# Save index to stack for working in internal cycle below
-    push r1
-    push r1
-    ldi r2, 0 # Initial sum value
+		push r1
+		push r1
+		ldi r2, 0 # Initial sum value
 		ldi r3, 8 # iterator for decrementing
-    do
-      push r0 # save byte addr before getting bit
-      ld r0, r0
-
+    	do
+			# save byte addr and bit index before getting bit
+			push r0 
+			push r1
+			ld r0, r0
 			jsr bitCheckWithSum
 
-
 			# increment bitIndex in surrounding bytes
-      inc r1
+			pop r1
+			inc r1
 
 			# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
 			ldi r0, 5
-			if 
-				cmp r0, r3
-			is eq
-        inc r1
-				pop r0 # get saved byte addr
-			fi 
+			cmp r0, r3
+			bz additionalSurroundingBitInc
 
 			# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
 			ldi r0, 4
 			cmp r0, r3
 			bz changeSurroundingByteAddr
+			# goto z, changeSurroundingByteAddr
 			ldi r0, 6
 			cmp r0, r3
 			bz changeSurroundingByteAddr
-			bnz sumCycleEnd
+			# goto z, changeSurroundingByteAddr
+			bnz popByteAddr
+			# goto nz, popLeftIndex
 
 			changeSurroundingByteAddr:
 				pop r0 # get saved byte addr
 				ldi r1, 3
 				add r1, r0 # byteAddr += 3
 				pop r1 # get topLeftX
-
+				br sumCycleEnd
+			additionalSurroundingBitInc:
+				inc r1
+			popByteAddr:
+				pop r0
 			sumCycleEnd:
-      dec r3
+				dec r3
 		until le
 
-    # Load processed (initial) byte state
-    ldi r0, newByteAddr
-    ld r0, r0
-    pop r1
-    jsr processBitInByte # Ещё не реализовано
-    ldi r1, newByteAddr
-    st r1, r0
-    pop r1
-    dec r1
+		# Load processed (initial) byte state
+		ldi r0, newByteAddr
+		ld r0, r0
+		pop r1
+		jsr processBitInByte
+		ldi r1, newByteAddr
+		st r1, r0
+		pop r1
+		dec r1
 	until le
 	# ================
 
-  # =============
+	# =============
 	# Process 0 bit
 	ldi r2, 0 # Initial sum value
 	
@@ -358,7 +409,7 @@ getNewByteState:
 	# get return value
 	ldi r0, newByteAddr
 	ld r0, r0
-
+rts
 #===============================
 
 halt
