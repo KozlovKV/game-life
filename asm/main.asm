@@ -1,4 +1,5 @@
 asect 0
+clr r0
 goto z, start
 
 # Internal data addresses
@@ -567,7 +568,8 @@ main:
 		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
 	until z
-goto r, main
+clr r0
+goto z, main
 
 halt
 end
