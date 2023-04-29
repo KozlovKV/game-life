@@ -52,6 +52,9 @@ topLeftY:
 asect 0x51
 topLeftX:
 
+asect 0x52
+isNotNullEnv:
+
 asect 0x70
 firstFieldByte:
 
@@ -490,6 +493,9 @@ main:
 		ld r1, r1
 
 		# Initital data for writing surrounding bytes
+		ldi r3, isNotNullEnv
+		ldi r2, 0
+		st r3, r2
 		ldi r3, envFirstByte
 		ldi r2, 3 # Iterator for changing surrounding Y
 		push r2 # Save iterator
@@ -502,6 +508,13 @@ main:
 			# Load byte value and save to environment cell
 			ld r0, r0
 			st r3, r0
+			# If value != 0 flag becomes true while we're working with this envirnment
+			if
+				tst r0
+			is nz
+				ldi r2, isNotNullEnv
+				st r2, r0
+			fi
 			
 			pop r0 # Get surrounding cell's Y
 			pop r2 # Get iterator for changing surrounding cell's Y
@@ -535,7 +548,14 @@ main:
 		
 		push r0 # Save bottom row Y
 
-		jsr getNewByteState
+		# If environment isn't null we work with it, otherwise r0 will be 0
+		ldi r0, isNotNullEnv
+		ld r0, r0
+		if
+			tst r0
+		is nz
+			jsr getNewByteState
+		fi
 
 		# Save new byte in I/O reg.
 		pop r2 # Get bottom row Y
@@ -585,7 +605,3 @@ goto eq, main
 
 halt
 end
-
-# 00010000
-# 00101111
-# 00101000
