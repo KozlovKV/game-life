@@ -16,6 +16,7 @@
 		- [Video buffer](#video-buffer)
 		- [Blinker (bit changer)](#blinker-bit-changer)
 		- [32-bit row destructor](#32-bit-row-destructor)
+		- [32-bit row reverser](#32-bit-row-reverser)
 
 <style>
 	body {
@@ -76,6 +77,7 @@ Main parts of CdM-8 instructions' block:
 - 2 cells below are used for saving surrounding bytes:
   - `0x50` - Y coord. of top left current cell
   - `0x51` - top left current cell byte index in Y row
+  - `0x52` - flag that tells us have we at least one non-zero byte in environment
 - `0x70`-`0xef` - these 128 bytes contains all matrix rows from 0 to 31 where in little-endian format
   - *thus cell `0x70` contains matrix points `0-7` of first row*
 
@@ -165,6 +167,7 @@ For more information about keys see [controls topic](#controls)
 *Picture*
 
 ### Video buffer
+
 Multifunctional circuit that:
 - lets us save selected matrix row (32 bits) (west)
 - sends all 32 rows to the matrix (east)
@@ -172,7 +175,15 @@ Multifunctional circuit that:
 
 *Full inputs/outputs description*
 
-*Picture*
+**WORKS ASYNCHRONOUSLY (value from `Input row` saves when `Write row` rises)**
+
+![](./videobuffer-top.png)
+![](./videobuffer-centre.png)
+
+<img src="./videobuffer-appearance.png" width="20%">
+<img src="./videobuffer-using.png" width="75%">
+
+
 
 ### Blinker (bit changer)
 Переключатель бита в матрице. Должен будет переключать значение заданного бита на противоположное, если поднимается вход switch. Важно, что данный элемент не должен хранить в себе новые значения, а должен просто направлять их наружу
@@ -202,3 +213,11 @@ Outputs:
 <img src="./row-destructor-appearance.png" width="15%">
 
 <img src="./row-destructor-circuit.png" width="80%">
+
+### 32-bit row reverser
+
+Reverse its input
+
+<img src="./row-reverser-appearance.png" width="50%">
+
+<img src="./row-reverser-circuit.png" width="50%">
