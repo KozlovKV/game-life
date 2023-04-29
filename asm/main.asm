@@ -146,10 +146,10 @@ getBit:
 		dec r1
 	stays pl
 		shr r0
-		# if
-		# is z
-		# 	break
-		# fi
+		if
+		is z
+			break
+		fi
 	wend
 	ldi r1, 1
 	and r1, r0
@@ -160,36 +160,42 @@ invertBit:
 	while
 		dec r1
 	stays pl
-		shl r2
+		shla r2
 	wend
 	xor r2, r0
 rts
 		
 processBitInByte:
-	# Половинчатая проработка случая, когда вокруг бита нет байтов
-	if
-		tst r2
-	is z
-		rts
-	fi
-
 	push r0
 	push r1
 	jsr getBit
 	if
 		tst r0
 	is eq
+		if
+			tst r2
+		is z
+			# For zero sum we cell cannot birth
+			ldi r2, 0
+			br inverting
+		fi
 		ldi r0, birthConditions
-		# ldi r0, baseBirthConditions
 	else
+		if
+			tst r2
+		is z
+			# For zero sum we kill alive cell
+			ldi r2, 1
+			br inverting
+		fi
 		ldi r0, deathConditions
-		# ldi r0, baseDeathConditions
 	fi
-	# ld r0, r0
+	ld r0, r0
 	move r2, r1
 	dec r1
 	jsr getBit
 	move r0, r2
+	inverting:
 	pop r1
 	pop r0
 	if
@@ -276,6 +282,7 @@ getNewByteState:
 	jsr processBitInByte
 	ldi r1, newByteAddr
 	st r1, r0
+	# =============
 
 	# =============
 	# Process bits 6-1
@@ -332,7 +339,7 @@ getNewByteState:
 				pop r0
 			sumCycleEnd:
 				dec r3
-		until le
+		until z
 
 		# Load processed (initial) byte state
 		ldi r0, newByteAddr
@@ -343,8 +350,8 @@ getNewByteState:
 		st r1, r0
 		pop r1
 		dec r1
-	until le
-	# ================
+	until z
+	# ================		
 
 	# =============
 	# Process 0 bit
@@ -402,7 +409,7 @@ getNewByteState:
 	ldi r1, newByteAddr
 	st r1, r0
 	# =============
-
+	
 	# get return value
 	ldi r0, newByteAddr
 	ld r0, r0
@@ -578,3 +585,7 @@ goto eq, main
 
 halt
 end
+
+# 00010000
+# 00101111
+# 00101000

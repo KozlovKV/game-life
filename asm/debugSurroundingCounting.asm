@@ -141,7 +141,17 @@ asect 0b11111001
 baseDeathConditions:
 
 asect 0
-br getNewByteState
+
+ldi r0, baseBirthConditions
+ldi r1, birthConditions
+st r1, r0
+
+ldi r0, baseDeathConditions
+ldi r1, deathConditions
+st r1, r0
+
+jsr getNewByteState
+halt
 
 #===============================
 getBit:
@@ -149,10 +159,10 @@ getBit:
 		dec r1
 	stays pl
 		shr r0
-		# if
-		# is z
-		# 	break
-		# fi
+		if
+		is z
+			break
+		fi
 	wend
 	ldi r1, 1
 	and r1, r0
@@ -169,30 +179,36 @@ invertBit:
 rts
 		
 processBitInByte:
-	# Половинчатая проработка случая, когда вокруг бита нет байтов
-	if
-		tst r2
-	is z
-		rts
-	fi
-
 	push r0
 	push r1
 	jsr getBit
 	if
 		tst r0
 	is eq
-		# ldi r0, birthConditions
-		ldi r0, baseBirthConditions
+		if
+			tst r2
+		is z
+			# For zero sum we cell cannot birth
+			ldi r2, 0
+			br inverting
+		fi
+		ldi r0, birthConditions
 	else
-		# ldi r0, deathConditions
-		ldi r0, baseDeathConditions
+		if
+			tst r2
+		is z
+			# For zero sum we kill alive cell
+			ldi r2, 1
+			br inverting
+		fi
+		ldi r0, deathConditions
 	fi
-	# ld r0, r0
+	ld r0, r0
 	move r2, r1
 	dec r1
 	jsr getBit
 	move r0, r2
+	inverting:
 	pop r1
 	pop r0
 	if
@@ -223,62 +239,6 @@ getNewByteState:
 	ldi r1, newByteAddr
 	st r1, r0
 
-	# =============
-	# Process 7 bit
-
-	ldi r2, 0 # Initial sum value
-
-	# Count bits 6,7 in top byte
-	ldi r3, envTopByte
-	ld r3, r0
-	ldi r1, 6 # top-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # top bit
-	jsr bitCheckWithSum
-
-	# Count bit 6 in centre byte
-	ldi r0, envCentreByte
-	ld r0, r0
-	ldi r1, 6 # left bit
-	jsr bitCheckWithSum
-
-	# Count bits 6,7 in bottom byte
-	ldi r3, envBottomByte
-	ld r3, r0
-	ldi r1, 6 # bottom-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # bottom bit
-	jsr bitCheckWithSum
-
-	# Check bit 7 in top-right byte
-	ldi r0, envTopRightByte
-	ld r0, r0
-	ldi r1, 0 # top-right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 bit in right byte
-	ldi r0, envRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in bottom-right byte
-	ldi r0, envBottomRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - bottom-right bit
-	jsr bitCheckWithSum
-
-	# Load processed (initial) byte state
-	ldi r0, newByteAddr
-	ld r0, r0
-	ldi r1, 7 # Set processing bit
-	jsr processBitInByte
-	ldi r1, newByteAddr
-	st r1, r0
 
 	# =============
 	# Process bits 6-1
@@ -295,7 +255,7 @@ getNewByteState:
 		push r1
 		ldi r2, 0 # Initial sum value
 		ldi r3, 8 # iterator for decrementing
-    	do
+		do
 			# save byte addr and bit index before getting bit
 			push r0 
 			push r1
@@ -335,7 +295,7 @@ getNewByteState:
 				pop r0
 			sumCycleEnd:
 				dec r3
-		until le
+		until z
 
 		# Load processed (initial) byte state
 		ldi r0, newByteAddr
@@ -346,8 +306,8 @@ getNewByteState:
 		st r1, r0
 		pop r1
 		dec r1
-	until le
-	# ================
+	until z
+	# ================		
 
 	# =============
 	# Process 0 bit
@@ -404,8 +364,8 @@ getNewByteState:
 	jsr processBitInByte
 	ldi r1, newByteAddr
 	st r1, r0
-  # =============
-
+	# =============
+	
 	# get return value
 	ldi r0, newByteAddr
 	ld r0, r0
