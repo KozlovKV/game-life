@@ -1,6 +1,3 @@
-asect 0
-goto eq, start
-
 # Internal data addresses
 asect 0x40
 gameMode:
@@ -137,10 +134,26 @@ macro changeCPUStatus/3
 mend
 #===============================
 
-asect 0x100
-#==============================#
-#     Place for subroutines    #
-#==============================#
+asect 0b00000100
+baseBirthConditions:
+
+asect 0b11111001
+baseDeathConditions:
+
+asect 0
+
+ldi r0, baseBirthConditions
+ldi r1, birthConditions
+st r1, r0
+
+ldi r0, baseDeathConditions
+ldi r1, deathConditions
+st r1, r0
+
+jsr getNewByteState
+halt
+
+#===============================
 getBit:
 	while
 		dec r1
@@ -160,7 +173,7 @@ invertBit:
 	while
 		dec r1
 	stays pl
-		shla r2
+		shl r2
 	wend
 	xor r2, r0
 rts
@@ -226,63 +239,6 @@ getNewByteState:
 	ldi r1, newByteAddr
 	st r1, r0
 
-	# =============
-	# Process 7 bit
-
-	ldi r2, 0 # Initial sum value
-
-	# Count bits 6,7 in top byte
-	ldi r3, envTopByte
-	ld r3, r0
-	ldi r1, 6 # top-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # top bit
-	jsr bitCheckWithSum
-
-	# Count bit 6 in centre byte
-	ldi r0, envCentreByte
-	ld r0, r0
-	ldi r1, 6 # left bit
-	jsr bitCheckWithSum
-
-	# Count bits 6,7 in bottom byte
-	ldi r3, envBottomByte
-	ld r3, r0
-	ldi r1, 6 # bottom-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # bottom bit
-	jsr bitCheckWithSum
-
-	# Check bit 7 in top-right byte
-	ldi r0, envTopRightByte
-	ld r0, r0
-	ldi r1, 0 # top-right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 bit in right byte
-	ldi r0, envRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in bottom-right byte
-	ldi r0, envBottomRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - bottom-right bit
-	jsr bitCheckWithSum
-
-	# Load processed (initial) byte state
-	ldi r0, newByteAddr
-	ld r0, r0
-	ldi r1, 7 # Set processing bit
-	jsr processBitInByte
-	ldi r1, newByteAddr
-	st r1, r0
-	# =============
 
 	# =============
 	# Process bits 6-1
@@ -416,176 +372,5 @@ getNewByteState:
 rts
 #===============================
 
-start:
-	# Move SP before I/O and field addresses
-	setsp 0x40
-
-	changeCPUStatus r0, r1, WAIT
-
-	# Waiting for IOGameMode I/O reg. != 0
-	ldi r1, IOGameMode
-	do 
-		ld r1, r0
-		tst r0
-	until nz
-
-	# Read birth and death conditions from I/O regs.
-	ldi r1, IOBirthConditions
-	ld r1, r0
-	ldi r1, birthConditions
-	st r1, r0
-	ldi r1, IODeathConditions
-	ld r1, r0
-	ldi r1, deathConditions
-	st r1, r0
-
-main:
-	
-	changeCPUStatus r0, r1, READ_FIELD
-	
-	# Load field from videobuffer
-	ldi r0, lastFieldByte
-	ldi r3, 0x1f # row Y index (will goes from last to first)
-	do
-		# Tell logisim with which row we will interact
-		ldi r1, IOY
-		st r1, r3
-		# Send read signal for row registers
-		ldi r1, IORowController
-		ld r1, r1  # second arg. is a blank
-		# Read data from row regs and save to field
-		ldi r1, IORowLastByte # Begin from last byte
-		do
-			ld r1, r2
-			st r0, r2
-			dec r0
-			dec r1
-			ldi r2, IORowFirstByte
-			cmp r1, r2
-		until lt
-		dec r3
-	until lt
-	
-	
-	changeCPUStatus r0, r1, PROCESS_FIELD
-	
-	# Count new bytes states
-	ldi r0, 31 # Y of first surrounding byte (top-left)
-	ldi r2, topLeftY
-	st r2, r0
-	ldi r1, 3 # X of first surrounding byte
-	ldi r2, topLeftX
-	st r2, r1
-	ldi r2, 128 # iterator
-	ldi r3, 4 # sub iterator for changing topLeftY value
-	do
-		# Save iterators
-		push r2
-		push r3
-
-		# Get top-left byte coords
-		ldi r0, topLeftY
-		ld r0, r0
-		ldi r1, topLeftX
-		ld r1, r1
-
-		# Initital data for writing surrounding bytes
-		ldi r3, envFirstByte
-		ldi r2, 3 # Iterator for changing surrounding Y
-		push r2 # Save iterator
-		do 
-			push r0 # Save surrounding cell's Y
-
-			# Get cell addr. for byte
-			getRowBeginAddr r0, r2
-			add r1, r0
-			# Load byte value and save to environment cell
-			ld r0, r0
-			st r3, r0
-			
-			pop r0 # Get surrounding cell's Y
-			pop r2 # Get iterator for changing surrounding cell's Y
-			dec r2
-			if
-			is z
-				# Weather iterator == 0
-				# Cycled inc for Y
-				inc r0 
-				ldi r2, 0b00011111
-				and r2, r0
-				# Reset X value to beggining
-				ldi r1, topLeftX
-				ld r1, r1
-				# Update and save iterator for changing surrounding cell's Y
-				ldi r2, 3
-				push r2
-			else
-				# Weather iterator != 0 simply save its and cycle increment X
-				push r2
-				inc r1
-				ldi r2, 0b00000011
-				and r2, r1
-			fi
-			
-			# Increment addr. for evnironment array and check weather we finished surrounding bytes saving 
-			inc r3
-			ldi r2, envLastByte
-			cmp r3, r2
-		until gt
-		
-		push r0 # Save bottom row Y
-
-		jsr getNewByteState
-
-		# Save new byte in I/O reg.
-		pop r2 # Get bottom row Y
-		pop r3 # Blank
-		pop r3 # Get row subiterator
-		push r3
-		ldi r1, IORowLastByte
-		inc r1
-		neg r3
-		add r3, r1 # Get current IO reg. for row byte = IORowLastByte + 1 - subiterator
-		st r1, r0
-		move r2, r0 # Move row Y to released r0
-		
-		# Set next X for top-left cell
-		ldi r3, topLeftX
-		ld r3, r1
-		inc r1
-		ldi r2, 0b00000011
-		and r2, r1
-		st r3, r1
-		
-		# Set next row value if subiterator == 0
-		pop r3
-		dec r3 # DON'T CHANGED AFTER IT IN THIS CYCLE
-		if 
-		is z
-			dec r0
-			dec r0
-			ldi r2, 0b00011111
-			and r2, r0
-			ldi r2, topLeftY
-			st r2, r0
-			ldi r3, 4 # Update row subiterator
-
-			# Save new row to buffer
-			ldi r2, IOY # Previous centre row Y is new topLeftY
-			st r2, r0
-			ldi r2, IORowController
-			st r2, r0
-
-		fi
-		
-		pop r2 # Get global iterator [128, 1]
-		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
-	until z
-goto eq, main
-
 halt
 end
-
-# 00010000
-# 00101111
-# 00101000
