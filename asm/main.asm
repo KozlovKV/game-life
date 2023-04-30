@@ -1,18 +1,42 @@
 asect 0
-goto eq, start
+goto z, start
+
 
 # Internal data addresses
-asect 0x40
+asect 0x6a
 gameMode:
-WAIT:
 
-asect 0x41
+asect 0x6b
 birthConditions:
-READ_FIELD:
 
-asect 0x42
+asect 0x6c
 deathConditions:
-PROCESS_FIELD:
+
+asect 0x5a
+topLeftY:
+
+asect 0x5b
+topLeftX:
+
+asect 0x5c
+isNotNullEnv:
+
+asect 0x40
+envTopRowBegin:
+asect 0x49
+envTopRowEnd:
+
+asect 0x50
+envMidRowBegin:
+asect 0x51
+envCentreByteBegin:
+asect 0x59
+envMidRowEnd:
+
+asect 0x60
+envBottomRowBegin:
+asect 0x69
+envBottomRowEnd:
 
 asect 0x60
 envFirstByte:
@@ -45,15 +69,6 @@ envBottomRightByte:
 
 asect 0x69
 newByteAddr:
-
-asect 0x50
-topLeftY:
-
-asect 0x51
-topLeftX:
-
-asect 0x52
-isNotNullEnv:
 
 asect 0x70
 firstFieldByte:
@@ -93,6 +108,13 @@ IORowLastByte:
 asect 0xfa
 IOCPUStatus:
 
+# CPU statuses
+asect 0x40
+WAIT:
+asect 0x41
+READ_FIELD:
+asect 0x42
+PROCESS_FIELD:
 
 #==============================#
 #      Place for macroses      #
@@ -417,6 +439,86 @@ getNewByteState:
 	ldi r0, newByteAddr
 	ld r0, r0
 rts
+
+checkByteForNull:
+	# set byte isNotNullEnv to not-null value if r0 != 0
+	# r2 will be rewrited
+	if
+		tst r0
+	is nz
+		ldi r2, isNotNullEnv
+		st r2, r0
+	fi
+rts
+
+environmentRowBitSpreading:
+	# r0 - row index
+	# r1 - row's byte index
+	# r3 - beginnig cell memory cell
+
+	push r0
+	push r1
+	# Get cell addr. for left byte
+	getRowBeginAddr r0, r2
+	add r1, r0
+
+	# Get 7th bit for left byte and save it to left cell in env. row
+	ldi r1, 7
+	ld r0, r0
+	jsr getBit
+	jsr checkByteForNull
+	st r3, r0
+
+	# Move to the 0th bit addr in env. cycled increment for row's byte index
+	inc r3
+	pop r1
+	pop r0
+	inc r1
+	ldi r2, 0b00000011
+	and r2, r1
+
+	push r0
+	push r1
+	# Get cell addr. for mid byte
+	getRowBeginAddr r0, r2
+	add r1, r0
+	ld r0, r1 # get mid byte for env. row
+	ldi r2, 8 # iterator
+	do
+		# get 0th bit in shifted byte and save it to byte in env. row
+		ldi r0, 1 
+		and r1, r0
+		st r3, r0
+		
+		# Check for null value
+		push r2
+		jsr checkByteForNull
+		pop r2
+
+		# byte >>= 1
+		shr r1
+		# addr. in env. byte++
+		inc r3
+		# iterator--
+		dec r2
+	until z
+
+	pop r1
+	pop r0
+	inc r1
+	ldi r2, 0b00000011
+	and r2, r1
+	# Get cell addr. for right byte
+	getRowBeginAddr r0, r2
+	add r1, r0
+	# Get 0th bit for right byte and save it to right cell in env. row
+	ldi r1, 0
+	ld r0, r0
+	jsr getBit
+	jsr checkByteForNull
+	st r3, r0
+rts
+
 #===============================
 
 start:
@@ -486,6 +588,10 @@ main:
 		push r2
 		push r3
 
+		# ===================
+		# Environment getting
+		# ===================
+
 		# Get top-left byte coords
 		ldi r0, topLeftY
 		ld r0, r0
@@ -496,55 +602,32 @@ main:
 		ldi r3, isNotNullEnv
 		ldi r2, 0
 		st r3, r2
-		ldi r3, envFirstByte
-		ldi r2, 3 # Iterator for changing surrounding Y
-		push r2 # Save iterator
+		ldi r3, envTopRowBegin
+		ldi r2, 3 # Iterator
 		do 
+			push r2
 			push r0 # Save surrounding cell's Y
 
-			# Get cell addr. for byte
-			getRowBeginAddr r0, r2
-			add r1, r0
-			# Load byte value and save to environment cell
-			ld r0, r0
-			st r3, r0
-			# If value != 0 flag becomes true while we're working with this envirnment
-			if
-				tst r0
-			is nz
-				ldi r2, isNotNullEnv
-				st r2, r0
-			fi
+			jsr environmentRowBitSpreading
 			
+			# move env. row addr to the next line
+			ldi r0, 0xf0
+			and r0, r3
+			ldi r0, 0x10
+			add r0, r3
+
 			pop r0 # Get surrounding cell's Y
-			pop r2 # Get iterator for changing surrounding cell's Y
-			dec r2
-			if
-			is z
-				# Weather iterator == 0
-				# Cycled inc for Y
-				inc r0 
-				ldi r2, 0b00011111
-				and r2, r0
-				# Reset X value to beggining
-				ldi r1, topLeftX
-				ld r1, r1
-				# Update and save iterator for changing surrounding cell's Y
-				ldi r2, 3
-				push r2
-			else
-				# Weather iterator != 0 simply save its and cycle increment X
-				push r2
-				inc r1
-				ldi r2, 0b00000011
-				and r2, r1
-			fi
+			inc r0 
+			ldi r2, 0b00011111
+			and r2, r0
+			# Reset X value to beggining
+			ldi r1, topLeftX
+			ld r1, r1
 			
-			# Increment addr. for evnironment array and check weather we finished surrounding bytes saving 
-			inc r3
-			ldi r2, envLastByte
-			cmp r3, r2
-		until gt
+			pop r2
+			dec r2
+		until z
+		# ===================
 		
 		push r0 # Save bottom row Y
 
@@ -554,12 +637,12 @@ main:
 		if
 			tst r0
 		is nz
-			jsr getNewByteState
+			# jsr getNewByteState
+			ldi r0, 0xff
 		fi
 
 		# Save new byte in I/O reg.
 		pop r2 # Get bottom row Y
-		pop r3 # Blank
 		pop r3 # Get row subiterator
 		push r3
 		ldi r1, IORowLastByte
@@ -601,7 +684,7 @@ main:
 		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
 	until z
-goto eq, main
+goto z, main
 
 halt
 end
