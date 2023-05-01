@@ -1,7 +1,6 @@
 asect 0
 goto z, start
 
-
 # Internal data addresses
 asect 0x6a
 gameMode:
@@ -21,6 +20,9 @@ topLeftX:
 asect 0x5c
 isNotNullEnv:
 
+asect 0x4a
+newByteAddr:
+
 asect 0x40
 envTopRowBegin:
 asect 0x49
@@ -37,38 +39,6 @@ asect 0x60
 envBottomRowBegin:
 asect 0x69
 envBottomRowEnd:
-
-asect 0x60
-envFirstByte:
-envTopLeftByte:
-
-asect 0x61
-envTopByte:
-
-asect 0x62
-envTopRightByte:
-
-asect 0x63
-envLeftByte:
-
-asect 0x64
-envCentreByte:
-
-asect 0x65
-envRightByte:
-
-asect 0x66
-envBottomLeftByte:
-
-asect 0x67
-envBottomByte:
-
-asect 0x68
-envLastByte:
-envBottomRightByte:
-
-asect 0x69
-newByteAddr:
 
 asect 0x70
 firstFieldByte:
@@ -245,94 +215,48 @@ getNewByteState:
 	# Doesn't need any args - all data saved in RAM
 	# Returns new byte in r0
 
-	# Save current byte initial state
-	ldi r0, envCentreByte
+	# ================================================
+  # Save value from centre byte addr. to newByteAddr
+	# Get centre Y and X
+	ldi r0, topLeftY
+	ld r0, r0
+	inc r0
+	ldi r1, 0b00011111
+	and r1, r0
+	ldi r1, topLeftX
+	ld r1, r1
+	inc r1
+	ldi r2, 0b00000011
+	and r2, r1
+	# Get centre byte addr. and save value from this cell to newByteAddr cell
+	getRowBeginAddr r0, r2
+	add r1, r0
 	ld r0, r0
 	ldi r1, newByteAddr
 	st r1, r0
+	# ================================================
 
-	# =============
-	# Process 7 bit
-
-	ldi r2, 0 # Initial sum value
-
-	# Count bits 6,7 in top byte
-	ldi r3, envTopByte
-	ld r3, r0
-	ldi r1, 6 # top-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # top bit
-	jsr bitCheckWithSum
-
-	# Count bit 6 in centre byte
-	ldi r0, envCentreByte
-	ld r0, r0
-	ldi r1, 6 # left bit
-	jsr bitCheckWithSum
-
-	# Count bits 6,7 in bottom byte
-	ldi r3, envBottomByte
-	ld r3, r0
-	ldi r1, 6 # bottom-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # bottom bit
-	jsr bitCheckWithSum
-
-	# Check bit 7 in top-right byte
-	ldi r0, envTopRightByte
-	ld r0, r0
-	ldi r1, 0 # top-right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 bit in right byte
-	ldi r0, envRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in bottom-right byte
-	ldi r0, envBottomRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - bottom-right bit
-	jsr bitCheckWithSum
-
-	# Load processed (initial) byte state
-	ldi r0, newByteAddr
-	ld r0, r0
-	ldi r1, 7 # Set processing bit
-	jsr processBitInByte
-	ldi r1, newByteAddr
-	st r1, r0
-	# =============
-
-	# =============
-	# Process bits 6-1
-
-	ldi r1, 6 # Processing bit index and iterator
+	# ==============================================
+	# Cycle for processing all bits in current bytes
+	ldi r1, 0 # current bit index 
+	ldi r3, 8 # iterator
 	do
-		push r1 # Save bit index
-		push r1 # Duplicate for fast working at the end of cycle
-		ldi r0, envTopByte # First needed surrounding byte
-		dec r1 # Get leftTopX
+		push r3
+		push r1
+		
+		ldi r3, envTopRowBegin
+		add r3, r1 # Set in r1 addr. of left-top bit for bit index in r1
 
-		# Save index to stack for working in internal cycle below
-		push r1
-		push r1
-		ldi r2, 0 # Initial sum value
-		ldi r3, 8 # iterator for decrementing
+		ldi r2, 0 # sum
+		ldi r3, 8 # iterator for counting sum in surrounding bits
 		do
-			# save byte addr and bit index before getting bit
-			push r0 
-			push r1
-			ld r0, r0
-			jsr bitCheckWithSum
+			ld r1, r0
+			if
+				tst r0
+			is nz
+				inc r2
+			fi
 
-			# increment bitIndex in surrounding bytes
-			pop r1
 			inc r1
 
 			# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
@@ -340,104 +264,44 @@ getNewByteState:
 			cmp r0, r3
 			bz additionalSurroundingBitInc
 
-			# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
+			# Wheather r3 == 4 or r3 == 6 we need increment env. row
 			ldi r0, 4
 			cmp r0, r3
 			bz changeSurroundingByteAddr
-			# goto z, changeSurroundingByteAddr
 			ldi r0, 6
 			cmp r0, r3
 			bz changeSurroundingByteAddr
-			# goto z, changeSurroundingByteAddr
-			bnz popByteAddr
-			# goto nz, popLeftIndex
+			bnz sumCycleEnd
 
 			changeSurroundingByteAddr:
-				pop r0 # get saved byte addr
-				ldi r1, 3
-				add r1, r0 # byteAddr += 3
-				pop r1 # get topLeftX
+				ldi r0, 13 # new surrounding addr. = prev. addr. + 16 - 3
+				add r0, r1 # byteAddr += 13
 				br sumCycleEnd
 			additionalSurroundingBitInc:
 				inc r1
-			popByteAddr:
-				pop r0
 			sumCycleEnd:
 				dec r3
 		until z
 
-		# Load processed (initial) byte state
+		# Check current bit depending on the sum
+		pop r1 # Get bit index
+		push r1
 		ldi r0, newByteAddr
-		ld r0, r0
-		pop r1
+		ld r0, r0 # Get current byte state
 		jsr processBitInByte
 		ldi r1, newByteAddr
-		st r1, r0
+		st r1, r0 # Save new byte state
+
 		pop r1
-		dec r1
+		pop r3
+		inc r1
+		dec r3
 	until z
-	# ================		
+	# ==============================================
 
-	# =============
-	# Process 0 bit
-	ldi r2, 0 # Initial sum value
-	
-	# Check bit 7 in top-left byte
-	ldi r0, envTopLeftByte
-	ld r0, r0
-	ldi r1, 7 # top-left bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in left byte
-	ldi r0, envLeftByte
-	ld r0, r0
-	ldi r1, 7 # left bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in bottom-left byte
-	ldi r0, envBottomLeftByte
-	ld r0, r0
-	ldi r1, 7 # bottom-left bit
-	jsr bitCheckWithSum
-
-	# Count bits 0,1 in top byte
-	ldi r3, envTopByte
-	ld r3, r0
-	ldi r1, 0 # top bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	# After getBit subroutine r1 already has been 1 - top-right bit
-	jsr bitCheckWithSum
-
-	# Count bit 1 in centre byte
-	ldi r0, envCentreByte
-	ld r0, r0
-	ldi r1, 1 # right bit
-	jsr bitCheckWithSum
-
-	# Count bits 0,1 in bottom byte
-	ldi r3, envBottomByte
-	ld r3, r0
-	ldi r1, 0 # bottom bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	# After getBit subroutine r1 already has been 1 - bottom-right bit
-	jsr bitCheckWithSum
-
-	# Load processed (initial) byte state
+	# Get final byte
 	ldi r0, newByteAddr
-	ld r0, r0
-	ldi r1, 0 # Set processing bit
-	jsr processBitInByte
-	ldi r1, newByteAddr
-	st r1, r0
-	# =============
-	
-	# get return value
-	ldi r0, newByteAddr
-	ld r0, r0
+	ld r0, r0 
 rts
 
 checkByteForNull:
@@ -637,8 +501,7 @@ main:
 		if
 			tst r0
 		is nz
-			# jsr getNewByteState
-			ldi r0, 0xff
+			jsr getNewByteState
 		fi
 
 		# Save new byte in I/O reg.

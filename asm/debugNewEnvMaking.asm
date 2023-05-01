@@ -63,7 +63,7 @@ asect 0x68
 envLastByte:
 envBottomRightByte:
 
-asect 0x69
+asect 0x4a
 newByteAddr:
 
 asect 0x70
@@ -141,15 +141,75 @@ getBit:
 	and r1, r0
 rts
 
-checkByteForNull:
-	# set byte isNotNullEnv to not-null value if r0 != 0
-	# r2 will be rewrited
-	if
-		tst r0
-	is nz
-		ldi r2, isNotNullEnv
-		st r2, r0
-	fi
+getNewByteState:
+	# Doesn't need any args - all data saved in RAM
+	# PREVIOUS BYTE VALUE ALREADY MUST BE IN newByteAddr
+	# Returns new byte in r0
+
+	ldi r1, 0 # current bit index 
+	ldi r3, 8 # iterator
+	do
+		push r3
+		push r1
+		
+		ldi r3, envTopRowBegin
+		add r3, r1 # Set in r1 addr. of left-top bit for bit index in r1
+
+		ldi r2, 0 # sum
+		ldi r3, 8 # iterator for counting sum in surrounding bits
+		do
+			ld r1, r0
+			if
+				tst r0
+			is nz
+				inc r2
+			fi
+
+			inc r1
+
+			# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
+			ldi r0, 5
+			cmp r0, r3
+			bz additionalSurroundingBitInc
+
+			# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
+			ldi r0, 4
+			cmp r0, r3
+			bz changeSurroundingByteAddr
+			ldi r0, 6
+			cmp r0, r3
+			bz changeSurroundingByteAddr
+			bnz sumCycleEnd
+
+			changeSurroundingByteAddr:
+				ldi r0, 13 # new surrounding addr. = prev. addr. + 16 - 2
+				add r0, r1 # byteAddr += 13
+				br sumCycleEnd
+			additionalSurroundingBitInc:
+				inc r1
+			sumCycleEnd:
+				dec r3
+		until z
+
+		# Check current bit depending on the sum
+		pop r1 # Get bit index
+		push r1
+		ldi r0, newByteAddr
+		ld r0, r0 # Get current byte state
+		# jsr processBitInByte
+		move r2, r0 # For debug
+		ldi r1, newByteAddr
+		st r1, r0 # Save new byte state
+
+		pop r1
+		pop r3
+		inc r1
+		dec r3
+	until z
+
+	# Get final byte
+	ldi r0, newByteAddr
+	ld r0, r0 
 rts
 
 environmentRowBitSpreading:
@@ -167,7 +227,7 @@ environmentRowBitSpreading:
 	ldi r1, 7
 	ld r0, r0
 	jsr getBit
-	jsr checkByteForNull
+	# jsr checkByteForNull
 	st r3, r0
 
 	# Move to the 0th bit addr in env. cycled increment for row's byte index
@@ -193,7 +253,7 @@ environmentRowBitSpreading:
 		
 		# Check for null value
 		push r2
-		jsr checkByteForNull
+		# jsr checkByteForNull
 		pop r2
 
 		# byte >>= 1
@@ -216,7 +276,7 @@ environmentRowBitSpreading:
 	ldi r1, 0
 	ld r0, r0
 	jsr getBit
-	jsr checkByteForNull
+	# jsr checkByteForNull
 	st r3, r0
 rts
 # ==============================
@@ -239,14 +299,15 @@ start:
   debugSt 0b00111111, 0x74
   debugSt 0b10101010, 0x75
 
+	# Count new bytes states
 	ldi r0, 31 # Y of first surrounding byte (top-left)
 	ldi r2, topLeftY
 	st r2, r0
 	ldi r1, 3 # X of first surrounding byte
 	ldi r2, topLeftX
 	st r2, r1
-	
-	# ===================
+
+		# ===================
 		# Environment getting
 		# ===================
 
@@ -269,10 +330,10 @@ start:
 			jsr environmentRowBitSpreading
 			
 			# move env. row addr to the next line
-			ldi r2, 0xf0
-			and r2, r3
-			ldi r2, 0x10
-			add r2, r3
+			ldi r0, 0xf0
+			and r0, r3
+			ldi r0, 0x10
+			add r0, r3
 
 			pop r0 # Get surrounding cell's Y
 			inc r0 
@@ -286,6 +347,21 @@ start:
 			dec r2
 		until z
 		# ===================
+		
+	ldi r0, 0x70
+	ld r0, r0
+	ldi r1, newByteAddr
+	st r1, r0
+	
+	ldi r0, 0b00000100
+	ldi r1, birthConditions
+	st r1, r0
+	
+	ldi r0, 0b11111001
+	ldi r1, deathConditions
+	st r1, r0
+	
+	jsr getNewByteState
 
 halt
 end
