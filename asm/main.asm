@@ -460,43 +460,108 @@ main:
 		# Environment getting
 		# ===================
 
+		# Finding non-zero surrounding bytes
+		ldi r3, isNotNullEnv
+		ldi r2, 0
+		st r3, r2
 		# Get top-left byte coords
 		ldi r0, topLeftY
 		ld r0, r0
 		ldi r1, topLeftX
 		ld r1, r1
 
-		# Initital data for writing surrounding bytes
-		ldi r3, isNotNullEnv
-		ldi r2, 0
-		st r3, r2
-		ldi r3, envTopRowBegin
-		ldi r2, 3 # Iterator
+		ldi r3, 9 # Iterator for checking all bytes in env.
+		ldi r2, 3 # Iterator for changing surrounding Y
+		push r2 # Save changing iterator
 		do 
-			push r2
 			push r0 # Save surrounding cell's Y
-
-			jsr environmentRowBitSpreading
+			# Get cell addr. for byte
+			getRowBeginAddr r0, r2
+			add r1, r0
+			# Load byte value and save to environment cell
+			ld r0, r0
+			# If value != 0 flag becomes true while we're working with this envirnment
+			if
+				tst r0
+			is nz
+				ldi r2, isNotNullEnv
+				st r2, r0
+			fi
 			
-			# move env. row addr to the next line
-			ldi r0, 0xf0
-			and r0, r3
-			ldi r0, 0x10
-			add r0, r3
-
 			pop r0 # Get surrounding cell's Y
-			inc r0 
-			ldi r2, 0b00011111
-			and r2, r0
-			# Reset X value to beggining
+			pop r2 # Get iterator for changing surrounding cell's Y
+			dec r2
+			if
+			is z
+				# Weather iterator == 0
+				# Cycled inc for Y
+				inc r0 
+				ldi r2, 0b00011111
+				and r2, r0
+				# Reset X value to beggining
+				ldi r1, topLeftX
+				ld r1, r1
+				# Update and save iterator for changing surrounding cell's Y
+				ldi r2, 3
+				push r2
+			else
+				# Weather iterator != 0 simply save its and cycle increment X
+				push r2
+				inc r1
+				ldi r2, 0b00000011
+				and r2, r1
+			fi
+			
+			# decrement iterator 
+			dec r3
+		until z
+		pop r2 # Free stack from outdated value of changing iterator
+		# ==================
+
+		# Weather all bytes in env == 0 we skip spreading
+		ldi r2, isNotNullEnv
+		ld r2, r2
+		if
+			tst r2
+		is nz
+			# Set flag to 0 because non-zero env. bytes cannot grant non-zero env. bits
+			ldi r3, isNotNullEnv
+			ldi r2, 0
+			st r3, r2
+			# Get top-left byte coords
+			ldi r0, topLeftY
+			ld r0, r0
 			ldi r1, topLeftX
 			ld r1, r1
-			
-			pop r2
-			dec r2
-		until z
+
+			# Cycle that spread bits in env. byte into 30 cells
+			ldi r3, envTopRowBegin
+			ldi r2, 3 # Iterator
+			do 
+				push r2
+				push r0 # Save surrounding cell's Y
+
+				jsr environmentRowBitSpreading
+				
+				# move env. row addr to the next line
+				ldi r0, 0xf0
+				and r0, r3
+				ldi r0, 0x10
+				add r0, r3
+
+				pop r0 # Get surrounding cell's Y
+				inc r0 
+				ldi r2, 0b00011111
+				and r2, r0
+				# Reset X value to beggining
+				ldi r1, topLeftX
+				ld r1, r1
+				
+				pop r2
+				dec r2
+			until z
+		fi 
 		# ===================
-		
 		push r0 # Save bottom row Y
 
 		# If environment isn't null we work with it, otherwise r0 will be 0
@@ -529,7 +594,7 @@ main:
 		
 		# Set next row value if subiterator == 0
 		pop r3
-		dec r3 # DON'T CHANGED AFTER IT IN THIS CYCLE
+		dec r3
 		if 
 		is z
 			dec r0
@@ -538,19 +603,18 @@ main:
 			and r2, r0
 			ldi r2, topLeftY
 			st r2, r0
-			ldi r3, 4 # Update row subiterator
+			ldi r3, 4 # Update row subiterator. DON'T CHANGED AFTER IT IN THIS CYCLE
 
 			# Save new row to buffer
 			ldi r2, IOY # Previous centre row Y is new topLeftY
 			st r2, r0
 			ldi r2, IORowController
 			st r2, r0
-
 		fi
 		
 		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
-	until z
+	until hi
 # Go to infinite cycle
 jmp main
 
