@@ -1,5 +1,5 @@
 asect 0
-goto z, start
+jmp start
 
 # Internal data addresses
 asect 0x6a
@@ -398,6 +398,9 @@ start:
 		tst r0
 	until nz
 
+	ldi r1, gameMode
+	st r1, r0
+
 	# Read birth and death conditions from I/O regs.
 	ldi r1, IOBirthConditions
 	ld r1, r0
@@ -409,6 +412,7 @@ start:
 	st r1, r0
 
 main:
+	# do # Begin of infinite simulation cycle
 	
 	changeCPUStatus r0, r1, READ_FIELD
 	
@@ -547,7 +551,8 @@ main:
 		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
 	until z
-goto z, main
+# Go to infinite cycle
+jmp main
 
 halt
 end
