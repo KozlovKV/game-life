@@ -1,59 +1,44 @@
 asect 0
-goto eq, start
+jmp start
 
 # Internal data addresses
-asect 0x40
+asect 0x6a
 gameMode:
-WAIT:
 
-asect 0x41
+asect 0x6b
 birthConditions:
-READ_FIELD:
 
-asect 0x42
+asect 0x6c
 deathConditions:
-PROCESS_FIELD:
 
-asect 0x60
-envFirstByte:
-envTopLeftByte:
-
-asect 0x61
-envTopByte:
-
-asect 0x62
-envTopRightByte:
-
-asect 0x63
-envLeftByte:
-
-asect 0x64
-envCentreByte:
-
-asect 0x65
-envRightByte:
-
-asect 0x66
-envBottomLeftByte:
-
-asect 0x67
-envBottomByte:
-
-asect 0x68
-envLastByte:
-envBottomRightByte:
-
-asect 0x69
-newByteAddr:
-
-asect 0x50
+asect 0x5a
 topLeftY:
 
-asect 0x51
+asect 0x5b
 topLeftX:
 
-asect 0x52
+asect 0x5c
 isNotNullEnv:
+
+asect 0x4a
+newByteAddr:
+
+asect 0x40
+envTopRowBegin:
+asect 0x49
+envTopRowEnd:
+
+asect 0x50
+envMidRowBegin:
+asect 0x51
+envCentreByteBegin:
+asect 0x59
+envMidRowEnd:
+
+asect 0x60
+envBottomRowBegin:
+asect 0x69
+envBottomRowEnd:
 
 asect 0x70
 firstFieldByte:
@@ -93,6 +78,13 @@ IORowLastByte:
 asect 0xfa
 IOCPUStatus:
 
+# CPU statuses
+asect 0x40
+WAIT:
+asect 0x41
+READ_FIELD:
+asect 0x42
+PROCESS_FIELD:
 
 #==============================#
 #      Place for macroses      #
@@ -223,94 +215,48 @@ getNewByteState:
 	# Doesn't need any args - all data saved in RAM
 	# Returns new byte in r0
 
-	# Save current byte initial state
-	ldi r0, envCentreByte
+	# ================================================
+  # Save value from centre byte addr. to newByteAddr
+	# Get centre Y and X
+	ldi r0, topLeftY
+	ld r0, r0
+	inc r0
+	ldi r1, 0b00011111
+	and r1, r0
+	ldi r1, topLeftX
+	ld r1, r1
+	inc r1
+	ldi r2, 0b00000011
+	and r2, r1
+	# Get centre byte addr. and save value from this cell to newByteAddr cell
+	getRowBeginAddr r0, r2
+	add r1, r0
 	ld r0, r0
 	ldi r1, newByteAddr
 	st r1, r0
+	# ================================================
 
-	# =============
-	# Process 7 bit
-
-	ldi r2, 0 # Initial sum value
-
-	# Count bits 6,7 in top byte
-	ldi r3, envTopByte
-	ld r3, r0
-	ldi r1, 6 # top-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # top bit
-	jsr bitCheckWithSum
-
-	# Count bit 6 in centre byte
-	ldi r0, envCentreByte
-	ld r0, r0
-	ldi r1, 6 # left bit
-	jsr bitCheckWithSum
-
-	# Count bits 6,7 in bottom byte
-	ldi r3, envBottomByte
-	ld r3, r0
-	ldi r1, 6 # bottom-left bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	ldi r1, 7 # bottom bit
-	jsr bitCheckWithSum
-
-	# Check bit 7 in top-right byte
-	ldi r0, envTopRightByte
-	ld r0, r0
-	ldi r1, 0 # top-right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 bit in right byte
-	ldi r0, envRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - right bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in bottom-right byte
-	ldi r0, envBottomRightByte
-	ld r0, r0
-	dec r1 # After getBit subroutine r1 already has been 1 and we need 0 - bottom-right bit
-	jsr bitCheckWithSum
-
-	# Load processed (initial) byte state
-	ldi r0, newByteAddr
-	ld r0, r0
-	ldi r1, 7 # Set processing bit
-	jsr processBitInByte
-	ldi r1, newByteAddr
-	st r1, r0
-	# =============
-
-	# =============
-	# Process bits 6-1
-
-	ldi r1, 6 # Processing bit index and iterator
+	# ==============================================
+	# Cycle for processing all bits in current bytes
+	ldi r1, 0 # current bit index 
+	ldi r3, 8 # iterator
 	do
-		push r1 # Save bit index
-		push r1 # Duplicate for fast working at the end of cycle
-		ldi r0, envTopByte # First needed surrounding byte
-		dec r1 # Get leftTopX
+		push r3
+		push r1
+		
+		ldi r3, envTopRowBegin
+		add r3, r1 # Set in r1 addr. of left-top bit for bit index in r1
 
-		# Save index to stack for working in internal cycle below
-		push r1
-		push r1
-		ldi r2, 0 # Initial sum value
-		ldi r3, 8 # iterator for decrementing
+		ldi r2, 0 # sum
+		ldi r3, 8 # iterator for counting sum in surrounding bits
 		do
-			# save byte addr and bit index before getting bit
-			push r0 
-			push r1
-			ld r0, r0
-			jsr bitCheckWithSum
+			ld r1, r0
+			if
+				tst r0
+			is nz
+				inc r2
+			fi
 
-			# increment bitIndex in surrounding bytes
-			pop r1
 			inc r1
 
 			# Weather r3 == 5 we will be in centre bit in centre byte => increment r1 again
@@ -318,105 +264,125 @@ getNewByteState:
 			cmp r0, r3
 			bz additionalSurroundingBitInc
 
-			# Wheather r3 == 4 or r3 == 6 we need change reading byte addrs in range [0x41 (envTopByte), 0x44, 0x47]
+			# Wheather r3 == 4 or r3 == 6 we need increment env. row
 			ldi r0, 4
 			cmp r0, r3
 			bz changeSurroundingByteAddr
-			# goto z, changeSurroundingByteAddr
 			ldi r0, 6
 			cmp r0, r3
 			bz changeSurroundingByteAddr
-			# goto z, changeSurroundingByteAddr
-			bnz popByteAddr
-			# goto nz, popLeftIndex
+			bnz sumCycleEnd
 
 			changeSurroundingByteAddr:
-				pop r0 # get saved byte addr
-				ldi r1, 3
-				add r1, r0 # byteAddr += 3
-				pop r1 # get topLeftX
+				ldi r0, 13 # new surrounding addr. = prev. addr. + 16 - 3
+				add r0, r1 # byteAddr += 13
 				br sumCycleEnd
 			additionalSurroundingBitInc:
 				inc r1
-			popByteAddr:
-				pop r0
 			sumCycleEnd:
 				dec r3
 		until z
 
-		# Load processed (initial) byte state
+		# Check current bit depending on the sum
+		pop r1 # Get bit index
+		push r1
 		ldi r0, newByteAddr
-		ld r0, r0
-		pop r1
+		ld r0, r0 # Get current byte state
 		jsr processBitInByte
 		ldi r1, newByteAddr
-		st r1, r0
+		st r1, r0 # Save new byte state
+
 		pop r1
-		dec r1
+		pop r3
+		inc r1
+		dec r3
 	until z
-	# ================		
+	# ==============================================
 
-	# =============
-	# Process 0 bit
-	ldi r2, 0 # Initial sum value
-	
-	# Check bit 7 in top-left byte
-	ldi r0, envTopLeftByte
-	ld r0, r0
-	ldi r1, 7 # top-left bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in left byte
-	ldi r0, envLeftByte
-	ld r0, r0
-	ldi r1, 7 # left bit
-	jsr bitCheckWithSum
-
-	# check bit 7 in bottom-left byte
-	ldi r0, envBottomLeftByte
-	ld r0, r0
-	ldi r1, 7 # bottom-left bit
-	jsr bitCheckWithSum
-
-	# Count bits 0,1 in top byte
-	ldi r3, envTopByte
-	ld r3, r0
-	ldi r1, 0 # top bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	# After getBit subroutine r1 already has been 1 - top-right bit
-	jsr bitCheckWithSum
-
-	# Count bit 1 in centre byte
-	ldi r0, envCentreByte
-	ld r0, r0
-	ldi r1, 1 # right bit
-	jsr bitCheckWithSum
-
-	# Count bits 0,1 in bottom byte
-	ldi r3, envBottomByte
-	ld r3, r0
-	ldi r1, 0 # bottom bit
-	jsr bitCheckWithSum
-
-	ld r3, r0
-	# After getBit subroutine r1 already has been 1 - bottom-right bit
-	jsr bitCheckWithSum
-
-	# Load processed (initial) byte state
+	# Get final byte
 	ldi r0, newByteAddr
-	ld r0, r0
-	ldi r1, 0 # Set processing bit
-	jsr processBitInByte
-	ldi r1, newByteAddr
-	st r1, r0
-	# =============
-	
-	# get return value
-	ldi r0, newByteAddr
-	ld r0, r0
+	ld r0, r0 
 rts
+
+checkByteForNull:
+	# set byte isNotNullEnv to not-null value if r0 != 0
+	# r2 will be rewrited
+	if
+		tst r0
+	is nz
+		ldi r2, isNotNullEnv
+		st r2, r0
+	fi
+rts
+
+environmentRowBitSpreading:
+	# r0 - row index
+	# r1 - row's byte index
+	# r3 - beginnig cell memory cell
+
+	push r0
+	push r1
+	# Get cell addr. for left byte
+	getRowBeginAddr r0, r2
+	add r1, r0
+
+	# Get 7th bit for left byte and save it to left cell in env. row
+	ldi r1, 7
+	ld r0, r0
+	jsr getBit
+	jsr checkByteForNull
+	st r3, r0
+
+	# Move to the 0th bit addr in env. cycled increment for row's byte index
+	inc r3
+	pop r1
+	pop r0
+	inc r1
+	ldi r2, 0b00000011
+	and r2, r1
+
+	push r0
+	push r1
+	# Get cell addr. for mid byte
+	getRowBeginAddr r0, r2
+	add r1, r0
+	ld r0, r1 # get mid byte for env. row
+	ldi r2, 8 # iterator
+	do
+		# get 0th bit in shifted byte and save it to byte in env. row
+		ldi r0, 1 
+		and r1, r0
+		st r3, r0
+		
+		# Check for null value
+		push r2
+		jsr checkByteForNull
+		pop r2
+
+		# byte >>= 1
+		shr r1
+		# addr. in env. byte++
+		inc r3
+		# iterator--
+		dec r2
+	until z
+
+	pop r1
+	pop r0
+	inc r1
+	ldi r2, 0b00000011
+	and r2, r1
+	# Get cell addr. for right byte
+	getRowBeginAddr r0, r2
+	add r1, r0
+	# Get 0th bit for right byte and save it to right cell in env. row
+	ldi r1, 0
+	ld r0, r0
+	jsr getBit
+	jsr checkByteForNull
+	st r3, r0
+rts
+
 #===============================
 
 start:
@@ -432,6 +398,9 @@ start:
 		tst r0
 	until nz
 
+	ldi r1, gameMode
+	st r1, r0
+
 	# Read birth and death conditions from I/O regs.
 	ldi r1, IOBirthConditions
 	ld r1, r0
@@ -443,6 +412,7 @@ start:
 	st r1, r0
 
 main:
+	# do # Begin of infinite simulation cycle
 	
 	changeCPUStatus r0, r1, READ_FIELD
 	
@@ -486,28 +456,30 @@ main:
 		push r2
 		push r3
 
+		# ===================
+		# Environment getting
+		# ===================
+
+		# Finding non-zero surrounding bytes
+		ldi r3, isNotNullEnv
+		ldi r2, 0
+		st r3, r2
 		# Get top-left byte coords
 		ldi r0, topLeftY
 		ld r0, r0
 		ldi r1, topLeftX
 		ld r1, r1
 
-		# Initital data for writing surrounding bytes
-		ldi r3, isNotNullEnv
-		ldi r2, 0
-		st r3, r2
-		ldi r3, envFirstByte
+		ldi r3, 9 # Iterator for checking all bytes in env.
 		ldi r2, 3 # Iterator for changing surrounding Y
-		push r2 # Save iterator
+		push r2 # Save changing iterator
 		do 
 			push r0 # Save surrounding cell's Y
-
 			# Get cell addr. for byte
 			getRowBeginAddr r0, r2
 			add r1, r0
 			# Load byte value and save to environment cell
 			ld r0, r0
-			st r3, r0
 			# If value != 0 flag becomes true while we're working with this envirnment
 			if
 				tst r0
@@ -540,12 +512,56 @@ main:
 				and r2, r1
 			fi
 			
-			# Increment addr. for evnironment array and check weather we finished surrounding bytes saving 
-			inc r3
-			ldi r2, envLastByte
-			cmp r3, r2
-		until gt
-		
+			# decrement iterator 
+			dec r3
+		until z
+		pop r2 # Free stack from outdated value of changing iterator
+		# ==================
+
+		# Weather all bytes in env == 0 we skip spreading
+		ldi r2, isNotNullEnv
+		ld r2, r2
+		if
+			tst r2
+		is nz
+			# Set flag to 0 because non-zero env. bytes cannot grant non-zero env. bits
+			ldi r3, isNotNullEnv
+			ldi r2, 0
+			st r3, r2
+			# Get top-left byte coords
+			ldi r0, topLeftY
+			ld r0, r0
+			ldi r1, topLeftX
+			ld r1, r1
+
+			# Cycle that spread bits in env. byte into 30 cells
+			ldi r3, envTopRowBegin
+			ldi r2, 3 # Iterator
+			do 
+				push r2
+				push r0 # Save surrounding cell's Y
+
+				jsr environmentRowBitSpreading
+				
+				# move env. row addr to the next line
+				ldi r0, 0xf0
+				and r0, r3
+				ldi r0, 0x10
+				add r0, r3
+
+				pop r0 # Get surrounding cell's Y
+				inc r0 
+				ldi r2, 0b00011111
+				and r2, r0
+				# Reset X value to beggining
+				ldi r1, topLeftX
+				ld r1, r1
+				
+				pop r2
+				dec r2
+			until z
+		fi 
+		# ===================
 		push r0 # Save bottom row Y
 
 		# If environment isn't null we work with it, otherwise r0 will be 0
@@ -559,7 +575,6 @@ main:
 
 		# Save new byte in I/O reg.
 		pop r2 # Get bottom row Y
-		pop r3 # Blank
 		pop r3 # Get row subiterator
 		push r3
 		ldi r1, IORowLastByte
@@ -579,7 +594,7 @@ main:
 		
 		# Set next row value if subiterator == 0
 		pop r3
-		dec r3 # DON'T CHANGED AFTER IT IN THIS CYCLE
+		dec r3
 		if 
 		is z
 			dec r0
@@ -588,20 +603,20 @@ main:
 			and r2, r0
 			ldi r2, topLeftY
 			st r2, r0
-			ldi r3, 4 # Update row subiterator
+			ldi r3, 4 # Update row subiterator. DON'T CHANGED AFTER IT IN THIS CYCLE
 
 			# Save new row to buffer
 			ldi r2, IOY # Previous centre row Y is new topLeftY
 			st r2, r0
 			ldi r2, IORowController
 			st r2, r0
-
 		fi
 		
 		pop r2 # Get global iterator [128, 1]
 		dec r2 # DON'T CHANGED AFTER IT IN THIS CYCLE
-	until z
-goto eq, main
+	until hi
+# Go to infinite cycle
+jmp main
 
 halt
 end
