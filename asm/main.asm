@@ -76,6 +76,12 @@ asect 0xf9
 IORowLastByte:
 
 asect 0xfa
+IOBit:
+
+asect 0xfb
+IOEnvSum:
+
+asect 0xff
 IOCPUStatus:
 
 # CPU statuses
