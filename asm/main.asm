@@ -1,6 +1,3 @@
-asect 0
-jmp start
-
 # Internal data addresses
 asect 0x50
 gameMode:
@@ -121,7 +118,9 @@ macro changeCPUStatus/3
 mend
 #===============================
 
-asect 0x100
+asect 0
+br start
+
 #==============================#
 #     Place for subroutines    #
 #==============================#
@@ -155,30 +154,7 @@ spreadByte:
 	wend
 rts		
 
-getBit:
-	while
-		dec r1
-	stays pl
-		shr r0
-		if
-		is z
-			break
-		fi
-	wend
-	ldi r1, 1
-	and r1, r0
-rts
 
-invertBit:
-	ldi r2, 1
-	while
-		dec r1
-	stays pl
-		shla r2
-	wend
-	xor r2, r0
-rts
-		
 processBit:
 	# r0 - sum
 	# r1 - bit
@@ -353,7 +329,7 @@ main:
 		dec r3
 	until lt
 # Go to infinite cycle
-jmp main
+br main
 
 halt
 end
