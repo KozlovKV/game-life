@@ -238,9 +238,6 @@ start:
 
 main:
 	
-	changeCPUStatus r0, r1, READ_FIELD
-	
-	
 	changeCPUStatus r0, r1, PROCESS_FIELD
 	
 	# Count new bytes states
@@ -305,7 +302,32 @@ main:
 		pop r3 # Get row iterator
 		dec r3
 	until mi
-	halt
+
+	changeCPUStatus r0, r1, READ_FIELD
+	# Save field to videobuffer
+	ldi r0, lastFieldByte
+	ldi r3, 0x1f # row Y index (will goes from last to first)
+	do
+		# Tell logisim with which row we will interact
+		ldi r1, IOY
+		st r1, r3
+		# Save data to row regs and from field
+		ldi r1, IORowLastByte # Begin from last byte
+		do
+			ld r0, r2
+			st r1, r2
+			dec r0
+			dec r1
+			ldi r2, IORowFirstByte
+			cmp r1, r2
+		until lt
+		# Send write signal for row registers
+		ldi r1, IORowController
+		st r1, r1  # second arg. is a blank
+
+		# Decrement row iterator
+		dec r3
+	until lt
 # Go to infinite cycle
 jmp main
 
