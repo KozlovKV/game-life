@@ -2,43 +2,23 @@ asect 0
 jmp start
 
 # Internal data addresses
-asect 0x6a
+asect 0x50
 gameMode:
 
-asect 0x6b
-birthConditions:
-
-asect 0x6c
-deathConditions:
-
-asect 0x5a
-topLeftY:
-
-asect 0x5b
-topLeftX:
-
-asect 0x5c
-isNotNullEnv:
-
-asect 0x4a
-newByteAddr:
-
-asect 0x40
-envTopRowBegin:
-asect 0x49
-envTopRowEnd:
-
-asect 0x50
-envMidRowBegin:
-asect 0x51
-envCentreByteBegin:
-asect 0x59
-envMidRowEnd:
-
 asect 0x60
-envBottomRowBegin:
-asect 0x69
-envBottomRowEnd:
+birthConditionsRowStart:
+
+asect 0x68
+deathConditionsRowStart:
+
+asect 0x51
+currentY:
+
+asect 0x52
+currentX:
+
+asect 0x53
+isNotNullEnv:
 
 asect 0x70
 firstFieldByte:
@@ -65,9 +45,6 @@ IOX:
 
 asect 0xf5
 IORowController:
-
-asect 32
-rowsCount:
 
 asect 0xf6
 IORowFirstByte:
@@ -142,6 +119,36 @@ asect 0x100
 #==============================#
 #     Place for subroutines    #
 #==============================#
+reduceByte:
+	ldi r2, 0b00001000
+	ldi r1, 0b00000000
+	add r2, r0
+	while
+		tst r2
+	stays nz
+		dec r0
+		ld r0, r3
+		shla r1
+		add r3, r1
+		dec r2
+	wend
+	move r1, r0
+rts
+
+spreadByte:
+	ldi r3, 0b00001000
+	while
+		tst r3
+	stays nz
+		ldi r2, 0b00000001
+		and r0, r2
+		st r1, r2
+		inc r1
+		shra r0
+		dec r3
+	wend
+rts		
+
 getBit:
 	while
 		dec r1
@@ -170,41 +177,25 @@ processBit:
 	# r0 - bit
 	# r1 - sum
 	# returns to r0 new bit state
-	push r0
+	# Choose conditions row addr.
 	if
 		tst r0
 	is z
-		if
-			tst r1
-		is z
-			# For zero sum we cell cannot birth
-			ldi r0, 0
-			br inverting
-		fi
-		ldi r0, birthConditions
+		ldi r2, birthConditionsRowStart
 	else
-		if
-			tst r1
-		is z
-			# For zero sum we kill alive cell
-			ldi r0, 1
-			br inverting
-		fi
-		ldi r0, deathConditions
+		ldi r2, deathConditionsRowStart
 	fi
-	ld r0, r0
+	# Check bit in spreaded space
 	dec r1
-	jsr getBit
-	inverting:
+	add r1, r2
+	ld r2, r2
+	# If there is 1 than we switch bit
 	if
-		tst r0
+		tst r2
 	is nz
-		pop r0
 		inc r0
 		ldi r1, 1
 		and r1, r0
-	else 
-		pop r0
 	fi
 rts
 
@@ -212,7 +203,7 @@ rts
 
 start:
 	# Move SP before I/O and field addresses
-	setsp 0x40
+	setsp 0x50
 
 	changeCPUStatus r0, r1, WAIT
 
@@ -229,12 +220,12 @@ start:
 	# Read birth and death conditions from I/O regs.
 	ldi r1, IOBirthConditions
 	ld r1, r0
-	ldi r1, birthConditions
-	st r1, r0
+	ldi r1, birthConditionsRowStart
+	jsr spreadByte
 	ldi r1, IODeathConditions
 	ld r1, r0
-	ldi r1, deathConditions
-	st r1, r0
+	ldi r1, deathConditionsRowStart
+	jsr spreadByte
 
 main:
 	
@@ -245,7 +236,7 @@ main:
 	ldi r2, lastFieldByte
 	do
 		push r3 # Save row iterator
-		ldi r1, topLeftY
+		ldi r1, currentY
 		st r1, r3
 
 		ldi r1, 31 # Bit index
@@ -261,7 +252,7 @@ main:
 				push r3
 				push r1
 
-				ldi r3, topLeftY
+				ldi r3, currentY
 				ld r3, r3 
 
 				# Send to logisim coords of current cell
@@ -277,7 +268,15 @@ main:
 				ld r1, r1
 
 				# Check birth or death conditions and save bit depends on conditions
-				jsr processBit
+				push r2
+				if
+					tst r1
+				is nz
+					jsr processBit
+				else 
+					ldi r0, 0 # If sum == 0 => cell always dead
+				fi
+				pop r2
 				shla r2
 				add r0, r2
 
