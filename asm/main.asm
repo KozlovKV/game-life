@@ -58,6 +58,12 @@ IOBit:
 asect 0xfb
 IOEnvSum:
 
+asect 0xfc
+IONullRowsEnv:
+
+asect 0xfd
+IONullByteEnv:
+
 asect 0xff
 IOCPUStatus:
 
@@ -174,28 +180,28 @@ invertBit:
 rts
 		
 processBit:
-	# r0 - bit
-	# r1 - sum
-	# returns to r0 new bit state
+	# r0 - sum
+	# r1 - bit
+	# returns to r1 new bit state
 	# Choose conditions row addr.
 	if
-		tst r0
+		tst r1
 	is z
 		ldi r2, birthConditionsRowStart
 	else
 		ldi r2, deathConditionsRowStart
 	fi
 	# Check bit in spreaded space
-	dec r1
-	add r1, r2
+	dec r0
+	add r0, r2
 	ld r2, r2
 	# If there is 1 than we switch bit
 	if
 		tst r2
 	is nz
-		inc r0
-		ldi r1, 1
-		and r1, r0
+		inc r1
+		ldi r0, 1
+		and r0, r1
 	fi
 rts
 
@@ -236,8 +242,14 @@ main:
 	ldi r2, lastFieldByte
 	do
 		push r3 # Save row iterator
-		ldi r1, currentY
-		st r1, r3
+		ldi r0, IOY
+		st r0, r3
+
+		# If all rows in env. are null => skip this row
+		ldi r3, IONullRowsEnv
+		ld r3, r3
+		tst r3
+		bnz rowSkip
 
 		ldi r1, 31 # Bit index
 		ldi r3, 4 # byte in row iterator
@@ -247,47 +259,53 @@ main:
 
 			ldi r2, 0 # Set initial value for byte
 
+			# byte env. (from x-7 to x) is null => byte will be 0
+			ldi r0, IOX
+			st r0, r1
+			ldi r0, IONullByteEnv
+			ld r0, r0
+			tst r0
+			bnz skipByte
+
 			ldi r3, 8
 			do
-				push r3
 				push r1
 
-				ldi r3, currentY
-				ld r3, r3 
-
 				# Send to logisim coords of current cell
-				ldi r0, IOY
-				st r0, r3
+				
 				ldi r0, IOX
 				st r0, r1
 
 				# Read data for this cell
-				ldi r0, IOBit
+				ldi r0, IOEnvSum
 				ld r0, r0
-				ldi r1, IOEnvSum
-				ld r1, r1
 
 				# Check birth or death conditions and save bit depends on conditions
-				push r2
 				if
-					tst r1
+					tst r0
 				is nz
+					ldi r1, IOBit
+					ld r1, r1
+					push r2
 					jsr processBit
+					pop r2
+					shla r2
+					add r1, r2
 				else 
-					ldi r0, 0 # If sum == 0 => cell always dead
+					shla r2
 				fi
-				pop r2
-				shla r2
-				add r0, r2
 
 				# Decrement X (bit index)
 				pop r1
 				dec r1
 
-				pop r3
 				dec r3
 			until z
-
+			br byteProcessed
+			skipByte:
+				ldi r0, -8
+				add r0, r1
+			byteProcessed:
 			move r2, r0
 			pop r2
 			# Save byte of new field and decrement addr.
@@ -297,6 +315,13 @@ main:
 			pop r3
 			dec r3
 		until z
+		br rowProcessed
+		rowSkip:
+			dec r2
+			dec r2
+			dec r2
+			dec r2
+		rowProcessed:
 
 		pop r3 # Get row iterator
 		dec r3
