@@ -76,7 +76,7 @@ asect 0x42
 PROCESS_FIELD:
 
 # Interanal constants
-asect 31
+asect 30
 firstRowIndex:
 
 asect 0b11111110 # -2
