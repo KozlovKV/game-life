@@ -41,13 +41,11 @@ asect 0xf4
 IOX:
 
 asect 0xf5
-IORowController:
+IOInvertBitSignal:
 
 asect 0xf6
-IORowFirstByte:
+IOUpdateGeneration:
 
-asect 0xf9
-IORowLastByte:
 
 asect 0xfa
 IOBit:
@@ -158,8 +156,7 @@ rts
 processBit:
 	# r0 - sum
 	# r1 - bit
-	# returns to r1 new bit state
-	# Choose conditions row addr.
+	# Send save signal to PSEUDO reg. IOInvertBitSignal if bit should be inverted (we count that IOX and IOY regs. contain correct coords.)
 	if
 		tst r1
 	is z
@@ -175,9 +172,8 @@ processBit:
 	if
 		tst r2
 	is nz
-		inc r1
-		ldi r0, 1
-		and r0, r1
+		ldi r0, IOInvertBitSignal
+		st r0, r0
 	fi
 rts
 
@@ -211,11 +207,13 @@ start:
 
 main:
 	
+	ldi r0, IOUpdateGeneration
+	st r0, r0
+
 	changeCPUStatus r0, r1, PROCESS_FIELD
 	
 	# Count new bytes states
 	ldi r3, 31 # row iterator
-	ldi r2, lastFieldByte
 	do
 		push r3 # Save row iterator
 		ldi r0, IOY
@@ -225,15 +223,12 @@ main:
 		ldi r3, IONullRowsEnv
 		ld r3, r3
 		tst r3
-		bnz rowSkip
+		bnz rowProcessed
 
 		ldi r1, 31 # Bit index
 		ldi r3, 4 # byte in row iterator
 		do 
 			push r3 # Save byte in row iterator
-			push r2 # Save byte addr.
-
-			ldi r2, 0 # Set initial value for byte
 
 			# byte env. (from x-7 to x) is null => byte will be 0
 			ldi r0, IOX
@@ -262,13 +257,7 @@ main:
 				is nz
 					ldi r1, IOBit
 					ld r1, r1
-					push r2
 					jsr processBit
-					pop r2
-					shla r2
-					add r1, r2
-				else 
-					shla r2
 				fi
 
 				# Decrement X (bit index)
@@ -282,52 +271,14 @@ main:
 				ldi r0, -8
 				add r0, r1
 			byteProcessed:
-			move r2, r0
-			pop r2
-			# Save byte of new field and decrement addr.
-			st r2, r0
-			dec r2
-			
 			pop r3
 			dec r3
 		until z
-		br rowProcessed
-		rowSkip:
-			dec r2
-			dec r2
-			dec r2
-			dec r2
 		rowProcessed:
 
 		pop r3 # Get row iterator
 		dec r3
 	until mi
-
-	changeCPUStatus r0, r1, READ_FIELD
-	# Save field to videobuffer
-	ldi r0, lastFieldByte
-	ldi r3, 0x1f # row Y index (will goes from last to first)
-	do
-		# Tell logisim with which row we will interact
-		ldi r1, IOY
-		st r1, r3
-		# Save data to row regs and from field
-		ldi r1, IORowLastByte # Begin from last byte
-		do
-			ld r0, r2
-			st r1, r2
-			dec r0
-			dec r1
-			ldi r2, IORowFirstByte
-			cmp r1, r2
-		until lt
-		# Send write signal for row registers
-		ldi r1, IORowController
-		st r1, r1  # second arg. is a blank
-
-		# Decrement row iterator
-		dec r3
-	until lt
 # Go to infinite cycle
 br main
 
