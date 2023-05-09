@@ -8,22 +8,6 @@ birthConditionsRowStart:
 asect 0x68
 deathConditionsRowStart:
 
-asect 0x51
-currentY:
-
-asect 0x52
-currentX:
-
-asect 0x53
-isNotNullEnv:
-
-asect 0x70
-firstFieldByte:
-
-asect 0xef
-lastFieldByte:
-
-
 # Asects for I/O registers
 asect 0xf0
 IOGameMode:
@@ -41,23 +25,22 @@ asect 0xf4
 IOX:
 
 asect 0xf5
-IOInvertBitSignal:
-
-asect 0xf6
-IOUpdateGeneration:
-
-
-asect 0xfa
 IOBit:
 
-asect 0xfb
+asect 0xf6
 IOEnvSum:
 
-asect 0xfc
+asect 0xf7
 IONullRowsEnv:
 
-asect 0xfd
+asect 0xf8
 IONullByteEnv:
+
+asect 0xf9
+IOInvertBitSignal:
+
+asect 0xfa
+IOUpdateGeneration:
 
 asect 0xff
 IOCPUStatus:
@@ -250,14 +233,21 @@ main:
 				# Read data for this cell
 				ldi r0, IOEnvSum
 				ld r0, r0
+				ldi r1, IOBit
+				ld r1, r1
 
 				# Check birth or death conditions and save bit depends on conditions
 				if
 					tst r0
 				is nz
-					ldi r1, IOBit
-					ld r1, r1
 					jsr processBit
+				else
+					if 
+						tst r1
+					is nz
+						ldi r0, IOInvertBitSignal
+						st r0, r0
+					fi
 				fi
 
 				# Decrement X (bit index)
