@@ -1,5 +1,6 @@
 - [Documentation](#documentation)
 - [Assembler](#assembler)
+	- [Short description](#short-description)
 	- [RAM distribution](#ram-distribution)
 		- [Cells referring to I/O regs.](#cells-referring-to-io-regs)
 	- [Code description](#code-description)
@@ -12,11 +13,14 @@
 		- [Short description table](#short-description-table)
 		- [List](#list)
 	- [Elements description](#elements-description)
-		- [Keyboard handler](#keyboard-handler)
-		- [Video buffer](#video-buffer)
+		- [Engine](#engine)
+		- [Keyboard controller](#keyboard-controller)
+		- [Random write buffer](#random-write-buffer)
+		- [Stable generation's buffer](#stable-generations-buffer)
+		- [Environment data constructor](#environment-data-constructor)
+		- [Row's bit invertor](#rows-bit-invertor)
+		- [Binary selector](#binary-selector)
 		- [Blinker (bit changer)](#blinker-bit-changer)
-		- [32-bit row destructor](#32-bit-row-destructor)
-		- [32-bit row reverser](#32-bit-row-reverser)
 
 <style>
 	body {
@@ -43,43 +47,13 @@
 
 # Documentation
 # Assembler
-Main parts of CdM-8 instructions' block:
-- Wait start signal
-- Load birth and death conditions (*optional*)
-- Eternal main cycle
-  - Load field from [video buffer](#video-buffer) to RAM
-  - Cycle processing field
-    - Calculate 1 new row (one by one 4 bytes)
-    - Write new row to video buffer
+## Short description
+*Soon*
 
 ## RAM distribution
 - `0x40` - game state (`0` - wait, `1` - simulate)
 - `0x41` - birth conditions
 - `0x42` - death conditions
-- `0x60`-`0x68` - bytes surrounding processed byte
-  - `0x60` - top left relative to the current one
-  - `0x61` - top relative to the current one
-  - `0x62` - top right relative to the current one
-  - `0x63` - left relative to the current one
-  - **`0x64` - byte that we're processing**
-  - `0x65` - right relative to the current one
-  - `0x66` - bottom left relative to the current one
-  - `0x67` - bottom relative to the current one
-  - `0x68` - bottom right relative to the current one
-  - *Simple human-pleasant visualization:*
-```
-0x60 | 0x61 | 0x62
------|------|-----
-0x63 | 0x64 | 0x65
------|------|-----
-0x66 | 0x67 | 0x68
-```
-- 2 cells below are used for saving surrounding bytes:
-  - `0x50` - Y coord. of top left current cell
-  - `0x51` - top left current cell byte index in Y row
-  - `0x52` - flag that tells us have we at least one non-zero byte in environment
-- `0x70`-`0xef` - these 128 bytes contains all matrix rows from 0 to 31 where in little-endian format
-  - *thus cell `0x70` contains matrix points `0-7` of first row*
 
 **Stack initial position - `0x40`**
 
@@ -92,7 +66,7 @@ See detailed description in [Logisim topic](#io-registers)
 *Will be soon*
 
 # Logisim
-Harvard architecture on `CdM-8-mark8-full`.
+Harvard architecture on `CdM-8-mark8-reduces`.
 
 ## Main concept
 *Describe how works main circuit and make links to subtopics*
@@ -138,9 +112,11 @@ CELL ADDR.    | "NAME"                 | DATA DIRECTION TYPES
 `0xf2`        | DEATH CONDITIONS       | `READ ONLY`          
 `0xf3`        | Y                      | `WRITE ONLY`         
 `0xf4`        | X                      | `WRITE ONLY`        
-`0xf5`        | I/O ROW DATA DIRECTION | `PSEUDO READ` / `PSEUDO WRITE`
-`0xf6`-`0xf9` | LITTLE-ENDIAN ROW      | `READ` / `WRITE`
-`0xfa`        | CPU STAGE              | `WRITE ONLY`   
+`0xf0`        | __________             | `READ ONLY`          
+`0xf1`        | ________________       | `READ ONLY`          
+`0xf2`        | ________________       | `READ ONLY`          
+`0xf5`        | INVERSION SIGNAL       | `PSEUDO READ` / `PSEUDO WRITE`
+`0xff`        | CPU STATE              | `WRITE ONLY`   
 
 *separate list below into divided topics*
 ### List
@@ -156,40 +132,44 @@ CELL ADDR.    | "NAME"                 | DATA DIRECTION TYPES
 - `0xfa` - WRITE ONLY - отображает номер процесса, которым сейчас занят процессор. Используется для отладки
 
 ## Elements description
-### Keyboard handler
+### Engine
+*soon*
+
+### Keyboard controller
 This circuit considers 8-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:
 - increment/decrement X/Y of cursor
 - switch state of selected cell
-- start life simulation
 
 For more information about keys see [controls topic](#controls)
 
 *Picture*
 
-### Video buffer
+### Random write buffer
 
 Multifunctional circuit that:
 - lets us save selected matrix row (32 bits) (west)
 - sends all 32 rows to the matrix (east)
-- gives separated chosen row (south)
 
 *Full inputs/outputs description*
 
 **WORKS ASYNCHRONOUSLY (value from `Input row` saves when `Write row` rises)**
 
-![](./videobuffer-top.png)
-![](./videobuffer-centre.png)
+### Stable generation's buffer
+*soon*
 
-<img src="./videobuffer-appearance.png" width="20%">
-<img src="./videobuffer-using.png" width="75%">
+### Environment data constructor
+*soon*
 
+### Row's bit invertor
+*soon*
 
+### Binary selector
+*soon*
 
 ### Blinker (bit changer)
 Переключатель бита в матрице. Должен будет переключать значение заданного бита на противоположное, если поднимается вход switch. Важно, что данный элемент не должен хранить в себе новые значения, а должен просто направлять их наружу
 
 Входы:
-- clock (при необходимости)
 - строки матрицы, 32 входа по 32 бита
 - координата Y (номер строки), 5 бит
 - координата X (номер бита в строке), 5 бит
@@ -198,26 +178,3 @@ Multifunctional circuit that:
 Выходы:
 - 32 выхода по 32 бита, в одном из которых один бит был изменён
 - строка с изменённым битом длиной 32 бита
-
-### 32-bit row destructor
-Selects needed bit and byte containing this bit from 32-bit string
-
-Inputs:
-- `row` - 32 bit
-- `sel` - 5 bit 
-
-Outputs:
-- `byte` - 8 bit - byte containing selected bit
-- `bit` - 1 bit
-
-<img src="./row-destructor-appearance.png" width="15%">
-
-<img src="./row-destructor-circuit.png" width="80%">
-
-### 32-bit row reverser
-
-Reverse its input
-
-<img src="./row-reverser-appearance.png" width="50%">
-
-<img src="./row-reverser-circuit.png" width="50%">
