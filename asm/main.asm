@@ -140,7 +140,7 @@ main:
 		bnz rowProcessed
 
 		ldi r1, 31 # Bit index
-		ldi r3, 4 # byte in row iterator
+		ldi r3, 8 # byte in row iterator
 		do 
 			push r3 # Save byte in row iterator
 
@@ -152,7 +152,7 @@ main:
 			tst r0
 			bnz skipByte
 
-			ldi r3, 8
+			ldi r3, 4
 			do
 				push r1
 
@@ -190,7 +190,7 @@ main:
 			until z
 			br byteProcessed
 			skipByte:
-				ldi r0, -8
+				ldi r0, -4
 				add r0, r1
 			byteProcessed:
 			pop r3
