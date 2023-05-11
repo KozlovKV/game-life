@@ -48,22 +48,6 @@ br start
 #==============================#
 #     Place for subroutines    #
 #==============================#
-reduceByte:
-	ldi r2, 0b00001000
-	ldi r1, 0b00000000
-	add r2, r0
-	while
-		tst r2
-	stays nz
-		dec r0
-		ld r0, r3
-		shla r1
-		add r3, r1
-		dec r2
-	wend
-	move r1, r0
-rts
-
 spreadByte:
 	ldi r3, 0b00001000
 	while
@@ -139,6 +123,12 @@ main:
 	# Count new bytes states
 	ldi r3, 31 # row iterator
 	do
+		# If game mode stays = 0 we go to start code part 
+		ldi r0, IOGameMode
+		ld r0, r0
+		tst r0
+		bz start
+
 		push r3 # Save row iterator
 		ldi r0, IOY
 		st r0, r3
@@ -183,6 +173,7 @@ main:
 				is nz
 					jsr processBit
 				else
+					# If sum = 0 alive cell must die
 					if 
 						tst r1
 					is nz
@@ -210,7 +201,7 @@ main:
 		pop r3 # Get row iterator
 		dec r3
 	until mi
-# Go to infinite cycle
+# Infinite simulation cycle
 br main
 
 halt

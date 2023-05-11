@@ -1,16 +1,24 @@
+- [How to play](#how-to-play)
 - [Documentation](#documentation)
 - [Assembler](#assembler)
 	- [Short description](#short-description)
 	- [RAM distribution](#ram-distribution)
 		- [Cells referring to I/O regs.](#cells-referring-to-io-regs)
 	- [Code description](#code-description)
+		- [Start part](#start-part)
+		- [Main part](#main-part)
+		- [Subroutines](#subroutines)
+			- [`spreadByte`](#spreadbyte)
+			- [`processBit`](#processbit)
 - [Logisim](#logisim)
 	- [Main concept](#main-concept)
 	- [Controls](#controls)
 		- [Main signals](#main-signals)
 		- [Keyboard](#keyboard)
-			- [Keys definitions](#keys-definitions)
+			- [Keyboard layouts](#keyboard-layouts)
 	- [I/O registers](#io-registers)
+		- [I/O registers' types](#io-registers-types)
+			- [`PSEUDO WRITE`](#pseudo-write)
 		- [Short description table](#short-description-table)
 		- [List](#list)
 	- [Elements description](#elements-description)
@@ -46,10 +54,34 @@
 	}
 </style>
 
+# How to play
+Our version of "Conway game of life" works with universal sets of conditions for birth and survival. To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position `N` means that birth/survival will be fulfilled when cell has `N` neighbors.
+
+After this click on keyboard element and use one of two [keyboard layouts](#keyboard-layouts) to move blinking cursor and change cells' states.
+
+When you set initial field state press button start and observe evolution!
+
 # Documentation
 # Assembler
 ## Short description
-*Soon*
+Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation]
+
+**In ASM code we use `asect` constants like this:**
+```
+asect 8
+constSample:
+
+# ...
+
+ldi r0, constSample  # r0 sets to 8 
+```
+
+**Often we save address value to its address:**
+```
+ldi r0, IOAddr
+st r0, r0
+```
+**The reason for this action is [`PSEUDO WRITE`](#pseudo-write) mode for some I/O registers**
 
 ## RAM distribution
 - `0xd0` - game state (`0` - wait, `1` - simulate)
@@ -58,13 +90,184 @@
 
 **Stack initial position - `0xd0`**
 
+<details>
+<summary>Constants for this cells</summary>
+
+```
+# Internal data addresses
+asect 0xd0
+gameMode:
+
+asect 0xe0
+birthConditionsRowStart:
+
+asect 0xe8
+deathConditionsRowStart:
+```
+</details>
+
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
 
-See detailed description in [Logisim topic](#io-registers)
+**See detailed description in [Logisim topic](#io-registers)**
+
+<details>
+<summary>Constants for I/O cells</summary>
+<br>
+
+```
+# Asects for I/O registers
+asect 0xf0
+IOGameMode:
+
+asect 0xf1
+IOBirthConditions:
+
+asect 0xf2
+IODeathConditions:
+
+asect 0xf3
+IOY:
+
+asect 0xf4
+IOX:
+
+asect 0xf5
+IOBit:
+
+asect 0xf6
+IOEnvSum:
+
+asect 0xf7
+IONullRowsEnv:
+
+asect 0xf8
+IONullByteEnv:
+
+asect 0xf9
+IOInvertBitSignal:
+
+asect 0xfa
+IOUpdateGeneration:
+```
+
+</details>
 
 ## Code description
-*Will be soon*
+### Start part
+This part just waits whilst user presses start button and after it loads game conditions to RAM using [spreadByte subroutine](#spreadbyte)
+
+**For optimized conditions checking survival conditions inverts to death's conditions. [See more here](#list)**
+
+<details>
+<summary>Code</summary>
+<br>
+
+```
+asect 0
+br start
+
+#==============================#
+#     Place for subroutines    #
+#==============================#
+...
+#===============================
+
+start:
+	# Move SP before I/O and field addresses
+	setsp 0xd0
+
+
+	# Waiting for IOGameMode I/O reg. != 0
+	ldi r1, IOGameMode
+	do 
+		ld r1, r0
+		tst r0
+	until nz
+
+	ldi r1, gameMode
+	st r1, r0
+
+	# Read birth and death conditions from I/O regs.
+	ldi r1, IOBirthConditions
+	ld r1, r0
+	ldi r1, birthConditionsRowStart
+	jsr spreadByte
+	ldi r1, IODeathConditions
+	ld r1, r0
+	ldi r1, deathConditionsRowStart
+	jsr spreadByte
+```
+</details>
+
+### Main part
+*Add after minor editing*
+
+### Subroutines
+#### `spreadByte`
+*Add spread byte description*
+
+#### `processBit`
+- This subroutine gets neighbors' sum in `r0` and centre bit value in `r1`.
+- Depending on bit value it chooses birth or death conditions
+- Thanks to [spreaded conditions](#spreadbyte) we can simply add to conditions' begin address value `r0 - 1` and check data by new address
+- If there is 1 we should change value in selected cell so [we send this signal to Logisim](#list)
+
+<details>
+<summary>Code</summary>
+<br>
+
+```
+processBit:
+	# r0 - sum
+	# r1 - bit
+	# Send save signal to PSEUDO reg. IOInvertBitSignal if bit should be inverted (we count that IOX and IOY regs. contain correct coords.)
+	if
+		tst r1
+	is z
+		ldi r2, birthConditionsRowStart
+	else
+		ldi r2, deathConditionsRowStart
+	fi
+	# Check bit in spreaded space
+	dec r0
+	add r0, r2
+	ld r2, r2
+	# If there is 1 than we switch bit
+	if
+		tst r2
+	is nz
+		ldi r0, IOInvertBitSignal
+		st r0, r0
+	fi
+rts
+```
+</details>
+
+
+*What to do if there is no neighbors?*
+
+We decided that alive cell should die and death cell cannot birth. Due to specific work with `sum = 0` this case for `bit = 1` is processed in [main part](#main-part):
+```
+...
+	# Check birth or death conditions and save bit depends on conditions
+	if
+		tst r0
+	is nz
+		jsr processBit
+	else
+		# If sum = 0 alive cell must die
+		if 
+			tst r1
+		is nz
+			ldi r0, IOInvertBitSignal
+			st r0, r0
+		fi
+	fi
+...
+```
+
+---
 
 # Logisim
 Harvard architecture on `CdM-8-mark8-reduced`.
@@ -81,7 +284,7 @@ Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [K
 
 **All keys are working only while we are in the `setting` game mode**
 
-#### Keys definitions
+#### Keyboard layouts
 Cursor moving:
 KEY           | DIRECTION    | X DELTA | Y DELTA
 :-:           | :-:          | :-:     | :-:
@@ -101,11 +304,13 @@ I/O bus have minor changes: selection of I/O addresses from CPU `addr` is detect
 
 ![I/O bus](./IO-bus.png)
 
+### I/O registers' types
+**All types' names are regarding the CPU directions**
+
 Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 
-Besides these types two specific types were added: `PSEUDO READ`, `PSEUDO WRITE`. From these registers CPU reads meaningless value and cannot write data into them. Main goal of these types is handling `read`/`write` signals that are used for comfortable communication between CPU and circuits in some specific cases (*see read/write rows topic*)
-
-**All types' names are regarding the CPU directions**
+#### `PSEUDO WRITE`
+Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handle `write` signal by CdM-8's `st` instruction.
 
 ### Short description table
 CELL ADDR.    | "NAME"                 | DATA DIRECTION TYPES 
