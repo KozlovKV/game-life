@@ -1,11 +1,11 @@
 # Internal data addresses
-asect 0x50
+asect 0xd0
 gameMode:
 
-asect 0x60
+asect 0xe0
 birthConditionsRowStart:
 
-asect 0x68
+asect 0xe8
 deathConditionsRowStart:
 
 # Asects for I/O registers
@@ -41,63 +41,6 @@ IOInvertBitSignal:
 
 asect 0xfa
 IOUpdateGeneration:
-
-asect 0xff
-IOCPUStatus:
-
-# CPU statuses
-asect 0x40
-WAIT:
-asect 0x41
-READ_FIELD:
-asect 0x42
-PROCESS_FIELD:
-
-#==============================#
-#      Place for macroses      #
-#==============================#
-macro getRowBeginAddr/2
-# Gets row index and returns addr of begin of its row
-# 1st reg - result
-# 2nd reg - helping
-	ldi $2, 0x70
-	shla $1
-	shla $1
-	add $2, $1
-mend
-
-macro fieldInc/2
-# Cycle increment in range [0x70, 0xef]
-	ldi $2, 0x90  # Negatated 0x70
-	add $2, $1
-	inc $1
-	shl $1
-	shra $1
-	neg $2
-	add $2, $1
-mend
-
-macro cycledInc/2
-	inc $1
-	ldi $2, 0b00000111
-	and $2, $1
-mend
-
-macro cycledDec/2
-	dec $1
-	ldi $2, 0b00000111
-	and $2, $1
-mend
-
-macro changeCPUStatus/3
-# change debugging CPU process status
-# args 1, 2 - free regs
-# arg 3 - new status
-	ldi $1, IOCPUStatus
-	ldi $2, $3
-	st $1, $2
-mend
-#===============================
 
 asect 0
 br start
@@ -164,9 +107,8 @@ rts
 
 start:
 	# Move SP before I/O and field addresses
-	setsp 0x50
+	setsp 0xd0
 
-	changeCPUStatus r0, r1, WAIT
 
 	# Waiting for IOGameMode I/O reg. != 0
 	ldi r1, IOGameMode
@@ -193,7 +135,6 @@ main:
 	ldi r0, IOUpdateGeneration
 	st r0, r0
 
-	changeCPUStatus r0, r1, PROCESS_FIELD
 	
 	# Count new bytes states
 	ldi r3, 31 # row iterator

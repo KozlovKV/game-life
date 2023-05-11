@@ -7,8 +7,9 @@
 - [Logisim](#logisim)
 	- [Main concept](#main-concept)
 	- [Controls](#controls)
-		- [Using NUM-block](#using-num-block)
-		- [Using main keyboard part](#using-main-keyboard-part)
+		- [Main signals](#main-signals)
+		- [Keyboard](#keyboard)
+			- [Keys definitions](#keys-definitions)
 	- [I/O registers](#io-registers)
 		- [Short description table](#short-description-table)
 		- [List](#list)
@@ -51,11 +52,11 @@
 *Soon*
 
 ## RAM distribution
-- `0x40` - game state (`0` - wait, `1` - simulate)
-- `0x41` - birth conditions
-- `0x42` - death conditions
+- `0xd0` - game state (`0` - wait, `1` - simulate)
+- `0xe0` - birth's conditions first byte
+- `0xe8` - death's conditions first byte
 
-**Stack initial position - `0x40`**
+**Stack initial position - `0xd0`**
 
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
@@ -66,39 +67,41 @@ See detailed description in [Logisim topic](#io-registers)
 *Will be soon*
 
 # Logisim
-Harvard architecture on `CdM-8-mark8-reduces`.
+Harvard architecture on `CdM-8-mark8-reduced`.
 
 ## Main concept
 *Describe how works main circuit and make links to subtopics*
 
 ## Controls
+### Main signals
+*Write about conditions bit arrays*
+
+### Keyboard
+Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [Keyboard controller](#keyboard-controller)
 
 **All keys are working only while we are in the `setting` game mode**
 
-### Using NUM-block
+#### Keys definitions
 Cursor moving:
-KEY     | DIRECTION    | X DELTA | Y DELTA
-:-:     | :-:          | :-:     | :-:
-`NUM 1` | bottom-left  | `-1`    | `+1`
-`NUM 2` | bottom       | `0`     | `+1`
-`NUM 3` | bottom-right | `+1`    | `+1`
-`NUM 4` | left         | `-1`    | `0`
-`NUM 6` | right        | `+1`    | `0`
-`NUM 7` | top-left     | `-1`    | `-1`
-`NUM 8` | top          | `0`     | `-1`
-`NUM 9` | top-right    | `+1`    | `-1`
+KEY           | DIRECTION    | X DELTA | Y DELTA
+:-:           | :-:          | :-:     | :-:
+`NUM 1` / `Z` | bottom-left  | `-1`    | `+1`
+`NUM 2` / `S` | bottom       | `0`     | `+1`
+`NUM 3` / `C` | bottom-right | `+1`    | `+1`
+`NUM 4` / `A` | left         | `-1`    | `0`
+`NUM 6` / `D` | right        | `+1`    | `0`
+`NUM 7` / `Q` | top-left     | `-1`    | `-1`
+`NUM 8` / `W` | top          | `0`     | `-1`
+`NUM 9` / `E` | top-right    | `+1`    | `-1`
 
-`NUM 5` - change state of selected cell.
-
-### Using main keyboard part
-*Add info after adding key handlers*
+`NUM 5` / `Space` - change state of selected cell.
 
 ## I/O registers
 I/O bus have minor changes: selection of I/O addresses from CPU `addr` is detected by `less than` comparator's output with the second input `0xf0` (the first I/O cell address)
 
 ![I/O bus](./IO-bus.png)
 
-Registers have trivial types of data direction: `READ ONLY`, `WRITE ONLY`, `READ / WRITE`.
+Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 
 Besides these types two specific types were added: `PSEUDO READ`, `PSEUDO WRITE`. From these registers CPU reads meaningless value and cannot write data into them. Main goal of these types is handling `read`/`write` signals that are used for comfortable communication between CPU and circuits in some specific cases (*see read/write rows topic*)
 
@@ -112,11 +115,12 @@ CELL ADDR.    | "NAME"                 | DATA DIRECTION TYPES
 `0xf2`        | DEATH CONDITIONS       | `READ ONLY`          
 `0xf3`        | Y                      | `WRITE ONLY`         
 `0xf4`        | X                      | `WRITE ONLY`        
-`0xf0`        | __________             | `READ ONLY`          
-`0xf1`        | ________________       | `READ ONLY`          
-`0xf2`        | ________________       | `READ ONLY`          
-`0xf5`        | INVERSION SIGNAL       | `PSEUDO READ` / `PSEUDO WRITE`
-`0xff`        | CPU STATE              | `WRITE ONLY`   
+`0xf5`        | SELECTED BIT           | `READ ONLY`          
+`0xf6`        | ENVIRONMENT SUM        | `READ ONLY`          
+`0xf7`        | NULL ROWS ENVIRONMENT  | `READ ONLY`          
+`0xf8`        | NULL BYTES ENVIRONMENT | `READ ONLY`         
+`0xf9`        | INVERSION SIGNAL       | `PSEUDO WRITE`
+`0xfa`        | UPDATE GENERATION      | `PSEUDO WRITE`
 
 *separate list below into divided topics*
 ### List
@@ -136,9 +140,9 @@ CELL ADDR.    | "NAME"                 | DATA DIRECTION TYPES
 *soon*
 
 ### Keyboard controller
-This circuit considers 8-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:
-- increment/decrement X/Y of cursor
-- switch state of selected cell
+This circuit considers 7-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:
+- Cycled increment/decrement X/Y of cursor
+- Send switch signal for switching the cell's state
 
 For more information about keys see [controls topic](#controls)
 
