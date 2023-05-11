@@ -34,7 +34,7 @@ asect 0xf7
 IONullRowsEnv:
 
 asect 0xf8
-IONullByteEnv:
+IONullHalfByteEnv:
 
 asect 0xf9
 IOInvertBitSignal:
@@ -118,7 +118,6 @@ main:
 	
 	ldi r0, IOUpdateGeneration
 	st r0, r0
-
 	
 	# Count new bytes states
 	ldi r3, 31 # row iterator
@@ -147,10 +146,10 @@ main:
 			# byte env. (from x-7 to x) is null => byte will be 0
 			ldi r0, IOX
 			st r0, r1
-			ldi r0, IONullByteEnv
+			ldi r0, IONullHalfByteEnv
 			ld r0, r0
 			tst r0
-			bnz skipByte
+			bnz skipHalfByte
 
 			ldi r3, 4
 			do
@@ -189,7 +188,7 @@ main:
 				dec r3
 			until z
 			br byteProcessed
-			skipByte:
+			skipHalfByte:
 				ldi r0, -4
 				add r0, r1
 			byteProcessed:

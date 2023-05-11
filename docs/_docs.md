@@ -20,7 +20,7 @@
 		- [I/O registers' types](#io-registers-types)
 			- [`PSEUDO WRITE`](#pseudo-write)
 		- [Short description table](#short-description-table)
-		- [List](#list)
+		- [List with descriptions](#list-with-descriptions)
 	- [Elements description](#elements-description)
 		- [Engine](#engine)
 		- [Keyboard controller](#keyboard-controller)
@@ -313,32 +313,32 @@ Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handle `write` signal by CdM-8's `st` instruction.
 
 ### Short description table
-CELL ADDR.    | "NAME"                 | DATA DIRECTION TYPES 
-:--           | :--                    | :--                  
-`0xf0`        | GAME STATE             | `READ ONLY`          
-`0xf1`        | BIRTH CONDITIONS       | `READ ONLY`          
-`0xf2`        | DEATH CONDITIONS       | `READ ONLY`          
-`0xf3`        | Y                      | `WRITE ONLY`         
-`0xf4`        | X                      | `WRITE ONLY`        
-`0xf5`        | SELECTED BIT           | `READ ONLY`          
-`0xf6`        | ENVIRONMENT SUM        | `READ ONLY`          
-`0xf7`        | NULL ROWS ENVIRONMENT  | `READ ONLY`          
-`0xf8`        | NULL BYTES ENVIRONMENT | `READ ONLY`         
-`0xf9`        | INVERSION SIGNAL       | `PSEUDO WRITE`
-`0xfa`        | UPDATE GENERATION      | `PSEUDO WRITE`
+CELL ADDR.    | "NAME"              | DATA DIRECTION TYPE | INTERACTION IN LOGISIM
+:--           | :--                 | :--                 | :--
+`0xf0`        | GAME STATE          | `READ ONLY`         | [User inputs](#how-to-play)
+`0xf1`        | BIRTH CONDITIONS    | `READ ONLY`         | [User inputs](#how-to-play)
+`0xf2`        | DEATH CONDITIONS    | `READ ONLY`         | [User inputs](#how-to-play)
+`0xf3`        | Y                   | `WRITE ONLY`        | [Engine](#engine)
+`0xf4`        | X                   | `WRITE ONLY`        | [Engine](#engine)
+`0xf5`        | SELECTED BIT        | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
+`0xf6`        | ENVIRONMENT SUM     | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
+`0xf7`        | NULL ROWS ENV.      | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
+`0xf8`        | NULL HALF-BYTE ENV. | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
+`0xf9`        | INVERSION SIGNAL    | `PSEUDO WRITE`      | [Random write buffer](#random-write-buffer)
+`0xfa`        | UPDATE GENERATION   | `PSEUDO WRITE`      | [Generation buffer](#stable-generations-buffer)
 
-*separate list below into divided topics*
-### List
-- `0xf0` - READ ONLY - состояние игры. `0` - настройка. `1` - симуляция
-- `0xf1` - READ ONLY - количество клеток для оживления (битовый массив, где `i`-й бит говорит о `i+1` количестве клеток для выполнения условия)
-- `0xf2` - READ ONLY - количество клеток, при которых клетка умрёт (битовый массив, где `i`-й бит говорит о `i+1` количестве клеток для выполнения условия)
-- `0xf3` - WRITE ONLY - координата Y строки, с которой сейчас работаем
-- `0xf4` - WRITE ONLY - координата X (*скорее всего не будет нужен*)
-- `0xf5` - PSEUDO READ / PSEUDO WRITE - бит бит направления строки из следующих четырёх регистров. 
-  - Когда сюда отправляется запрос на запись, значение строки из последующих 4 байтов отправляется записывается в строку `Y` видеобуфера. 
-  - Когда отправляется запрос на чтение, выгружает в следующие 4 регистра строку по индексу `Y`
-- `0xf6`-`0xf9` - READ / WRITE - 4 регистра для выбранной строки в порядке little-endian (при запросе на чтение будет загружаться из буфера, при запросе на запись будет отправлять значение во временное хранилище)
-- `0xfa` - WRITE ONLY - отображает номер процесса, которым сейчас занят процессор. Используется для отладки
+### List with descriptions
+- `0xf0` - READ ONLY - simulation state. `0` - setting. `1` - simulating
+- `0xf1` - READ ONLY - birth conditions as bit array
+- `0xf2` - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input
+- `0xf3` - WRITE ONLY - Y coordinate (processing row)
+- `0xf4` - WRITE ONLY - X coordinate (bit index in row)
+- `0xf5` - READ ONLY - 1 when bit on position `(Y, X)` is 1
+- `0xf6` - READ ONLY - sum of bits around cell `(Y, X)`
+- `0xf7` - READ ONLY - 1 when rows `Y-1`, `Y` and `Y+1` are null
+- `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X-1` to `X+4` are null
+- `0xf9` - PSEUDO WRITE - save signal to this cell will switch cell `(Y, X)`
+- `0xfa` - PSEUDO WRITE - save signal to this cell will update [generation buffer](#stable-generations-buffer)
 
 ## Elements description
 ### Engine
