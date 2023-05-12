@@ -21,6 +21,10 @@
 			- [`PSEUDO WRITE`](#pseudo-write)
 		- [Short description table](#short-description-table)
 		- [List with descriptions](#list-with-descriptions)
+			- [Simulation rules](#simulation-rules)
+			- [Processed cell](#processed-cell)
+			- [I/O "registers" with environment data](#io-registers-with-environment-data)
+			- [I/O "registers" for changing field](#io-registers-for-changing-field)
 	- [Elements description](#elements-description)
 		- [Engine](#engine)
 		- [Keyboard controller](#keyboard-controller)
@@ -55,6 +59,7 @@
 
 	.columns {
 		margin-top: 10px;
+		margin-bottom: 10px;
 		display: flex;
 		justify-content: space-around;
 		align-items: flex-start;
@@ -290,10 +295,23 @@ We decided that alive cell should die and death cell cannot birth. Due to specif
 ---
 
 # Logisim
-Harvard architecture on `CdM-8-mark8-reduced`.
-
 ## Main concept
-*Describe how works main circuit and make links to subtopics*
+Here you can see main jobs for Logisim part and logical ordered references for all of them:
+1. Communication with user
+   1. [Controls](#controls) 
+   2. [Game screen](#how-to-play)
+   3. [Blinker](#blinker-bit-changer) for pretty cursor visualization
+2. Storing game's data
+   1. [Random write buffer](#random-write-buffer)
+   2. [Stable generation's buffer](#stable-generations-buffer)
+3. Constructing data for CPU
+   1. Used I/O registers: [cell](#processed-cell) and [environment data](#io-registers-with-environment-data)
+   2. [Environment data constructor](#environment-data-constructor)
+4. Creating new generation by CPU signals
+   1. Used I/O registers: [cell](#processed-cell) and [signals](#io-registers-for-changing-field)
+   2. [Row's bit invertor](#rows-bit-invertor)
+   3. [Random write buffer](#random-write-buffer)
+   4. [Stable generation's buffer](#stable-generations-buffer)
 
 ## Controls
 ### Main signals
@@ -329,7 +347,9 @@ KEY           | DIRECTION    | X DELTA | Y DELTA
 `NUM 8` / `W` | top          | `0`     | `-1`
 `NUM 9` / `E` | top-right    | `+1`    | `-1`
 
-`NUM 5` / `Space` - change state of selected cell.
+**On matrix cursor is marked by [blinker](#blinker-bit-changer)**
+
+`NUM 5` / `Space` - change state of selected cell in [random write buffer](#random-write-buffer) using [row's bit invertor](#rows-bit-invertor)
 
 ## I/O registers
 I/O bus have minor changes: selection of I/O addresses from CPU `addr` is detected by `less than` comparator's output with the second input `0xf0` (the first I/O cell address)
@@ -345,32 +365,52 @@ Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handle `write` signal by CdM-8's `st` instruction.
 
 ### Short description table
-CELL ADDR.    | "NAME"              | DATA DIRECTION TYPE | INTERACTION IN LOGISIM
-:--           | :--                 | :--                 | :--
-`0xf0`        | GAME STATE          | `READ ONLY`         | [User inputs](#how-to-play)
-`0xf1`        | BIRTH CONDITIONS    | `READ ONLY`         | [User inputs](#how-to-play)
-`0xf2`        | DEATH CONDITIONS    | `READ ONLY`         | [User inputs](#how-to-play)
-`0xf3`        | Y                   | `WRITE ONLY`        | [Engine](#engine)
-`0xf4`        | X                   | `WRITE ONLY`        | [Engine](#engine)
-`0xf5`        | SELECTED BIT        | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
-`0xf6`        | ENVIRONMENT SUM     | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
-`0xf7`        | NULL ROWS ENV.      | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
-`0xf8`        | NULL HALF-BYTE ENV. | `READ ONLY`         | [Environment constructor](#environment-data-constructor)
-`0xf9`        | INVERSION SIGNAL    | `PSEUDO WRITE`      | [Random write buffer](#random-write-buffer)
-`0xfa`        | UPDATE GENERATION   | `PSEUDO WRITE`      | [Generation buffer](#stable-generations-buffer)
+CELL ADDR.    | "NAME"              | DATA DIRECTION TYPE |
+:--           | :--                 | :--                 |
+`0xf0`        | GAME STATE          | `READ ONLY`         |
+`0xf1`        | BIRTH CONDITIONS    | `READ ONLY`         |
+`0xf2`        | DEATH CONDITIONS    | `READ ONLY`         |
+`0xf3`        | Y                   | `WRITE ONLY`        |
+`0xf4`        | X                   | `WRITE ONLY`        |
+`0xf5`        | SELECTED BIT        | `READ ONLY`         |
+`0xf6`        | ENVIRONMENT SUM     | `READ ONLY`         |
+`0xf7`        | NULL ROWS ENV.      | `READ ONLY`         |
+`0xf8`        | NULL HALF-BYTE ENV. | `READ ONLY`         |
+`0xf9`        | INVERSION SIGNAL    | `PSEUDO WRITE`      |
+`0xfa`        | UPDATE GENERATION   | `PSEUDO WRITE`      |
 
 ### List with descriptions
-- `0xf0` - READ ONLY - simulation state. `0` - setting. `1` - simulating
+#### Simulation rules
+- `0xf0` - READ ONLY - when simulation off this register will be `0`.
+  - Trigger signal on this register will invert its value 
+  - Tunnels from this register are used for control data origins on coordinates bus and some other cases.
 - `0xf1` - READ ONLY - birth conditions as bit array
 - `0xf2` - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input
+
+![Simulation rules](./IO-rules.png)
+
+#### Processed cell
+Coordinates from these registers are used in all Logisim components to tell what cell CPU is processing. When simulation on they capture coordinates bus:
 - `0xf3` - WRITE ONLY - Y coordinate (processing row)
 - `0xf4` - WRITE ONLY - X coordinate (bit index in row)
+
+![Coordinates registers](./IO-coords.png)
+
+#### I/O "registers" with environment data
+These "registers" aren't exist. There are just tunnels which are connected to [environment constructor outputs](#environment-data-constructor):
 - `0xf5` - READ ONLY - 1 when bit on position `(Y, X)` is 1
 - `0xf6` - READ ONLY - sum of bits around cell `(Y, X)`
 - `0xf7` - READ ONLY - 1 when rows `Y-1`, `Y` and `Y+1` are null
 - `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X-1` to `X+4` are null
-- `0xf9` - PSEUDO WRITE - save signal to this cell will switch cell `(Y, X)`
+
+![I/O "registers" with environment data 1](./IO-env-1.png)
+![I/O "registers" with environment data 2](./IO-env-2.png)
+
+#### I/O "registers" for changing field
+- `0xf9` - PSEUDO WRITE - save signal to this cell will trigger [random write buffer](#random-write-buffer) and change cell `(Y, X)` using [row's bit invertor](#rows-bit-invertor)
 - `0xfa` - PSEUDO WRITE - save signal to this cell will update [generation buffer](#stable-generations-buffer)
+
+![I/O "registers" for changing field](./IO-change-signals.png)
 
 ## Elements description
 ### Engine
@@ -384,6 +424,8 @@ This circuit considers 7-bit ASCII input as ASCII code and compares it with cons
 See keyboard layouts [here](#keyboard-layouts)
 
 ![Keyboard controller circuit](./keyboard-controller-circuit.png)
+
+![Keyboard controller usage](./keyboard-controller-usage.png)
 
 ### Random write buffer
 
@@ -399,7 +441,7 @@ Multifunctional circuit that:
 This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input `Save generation trigger`
 
 <div class="columns">
-	<img width="45%" src="./SGB-using.png">
+	<img width="45%" src="./SGB-usage.png">
 	<img width="45%" src="./SGB-circuit.png">
 </div>
 
@@ -410,10 +452,13 @@ This buffer just saves 32 32-bit rows from inputs to registers and sends them to
 This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. **For inversion we use decoder constructed bit mask and XOR**
 
 <div class="columns">
-	<img width="25%" src="./RBI-using.png">
-	<img width="25%" src="./RBI-circuit-1.png">
+	<img width="45%" src="./RBI-circuit-1.png">
 	<img width="45%" src="./RBI-circuit-2.png">
 </div>
+
+Inverted row goes through tunnel to `input row` of [random write buffer](#random-write-buffer)
+
+![Usage in Engine](./RBI-usage.png)
 
 ### Binary selector
 *soon*
