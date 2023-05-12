@@ -33,7 +33,7 @@
 
 <style>
 	body {
-		font-size: 14px;
+		font-size: 15px;
 	}
 	h1 {
 		text-align: center;
@@ -52,14 +52,34 @@
 	h4 {
 		font-size: 1.25rem;
 	}
+
+	.columns {
+		margin-top: 10px;
+		display: flex;
+		justify-content: space-around;
+		align-items: flex-start;
+	}
 </style>
 
 # How to play
-Our version of "Conway game of life" works with universal sets of conditions for birth and survival. To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position `N` means that birth/survival will be fulfilled when cell has `N` neighbors.
+**Our version of "Conway game of life" works with universal sets of conditions for birth and survival.**
 
-After this click on keyboard element and use one of two [keyboard layouts](#keyboard-layouts) to move blinking cursor and change cells' states.
-
-When you set initial field state press button start and observe evolution!
+<div class="columns">
+	<div width="55%">
+		<ol>
+			<li>
+				To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position `N` means that birth/survival will be fulfilled when cell has `N` neighbors.
+			</li>
+			<li>
+				After this click on keyboard element and use one of two [keyboard layouts](#keyboard-layouts) to move blinking cursor and change cells' states.
+			</li>
+			<li>
+				When you set initial field state press button "Simulation switch" and observe evolution!
+			</li>
+		</ol>
+	</div>
+	<img width="40%" src="./how-to-play.png">
+</div>
 
 # Documentation
 # Assembler
@@ -277,10 +297,22 @@ Harvard architecture on `CdM-8-mark8-reduced`.
 
 ## Controls
 ### Main signals
-*Write about conditions bit arrays*
+![](./main.png)
+
+Simulations switch button switches between simulation and setting modes. **When we turn from simulation to setting mode we can get unfinished new generation**
+
+Two 8-bit inputs let us set different conditions for birth and survival. Bit value `1` on position `N` means fulfilling of conditions when cell has `N` neighbors so this inputs represent bit arrays.
+
+Clear button clears all field when simulation is off.
+
+Keyboard Logisim circuit sends keys' ASCII codes to engine. See more below.
+
+On bottom-right side we can see two LED indicators:
+1. State of cell under the blinking cursor
+2. Simulation state (when simulation is on indicator will light)
 
 ### Keyboard
-Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [Keyboard controller](#keyboard-controller)
+Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [Keyboard controller](#keyboard-controller) inside engine circuit
 
 **All keys are working only while we are in the `setting` game mode**
 
@@ -349,9 +381,9 @@ This circuit considers 7-bit ASCII input as ASCII code and compares it with cons
 - Cycled increment/decrement X/Y of cursor
 - Send switch signal for switching the cell's state
 
-For more information about keys see [controls topic](#controls)
+See keyboard layouts [here](#keyboard-layouts)
 
-*Picture*
+![Keyboard controller circuit](./keyboard-controller-circuit.png)
 
 ### Random write buffer
 
@@ -364,13 +396,24 @@ Multifunctional circuit that:
 **WORKS ASYNCHRONOUSLY (value from `Input row` saves when `Write row` rises)**
 
 ### Stable generation's buffer
-*soon*
+This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input `Save generation trigger`
+
+<div class="columns">
+	<img width="45%" src="./SGB-using.png">
+	<img width="45%" src="./SGB-circuit.png">
+</div>
 
 ### Environment data constructor
 *soon*
 
 ### Row's bit invertor
-*soon*
+This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. **For inversion we use decoder constructed bit mask and XOR**
+
+<div class="columns">
+	<img width="25%" src="./RBI-using.png">
+	<img width="25%" src="./RBI-circuit-1.png">
+	<img width="45%" src="./RBI-circuit-2.png">
+</div>
 
 ### Binary selector
 *soon*
