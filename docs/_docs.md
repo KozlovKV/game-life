@@ -28,10 +28,19 @@
 	- [Elements description](#elements-description)
 		- [Engine](#engine)
 		- [Keyboard controller](#keyboard-controller)
+			- [Circuit screenshots](#circuit-screenshots)
+			- [Usage in Engine circuit](#usage-in-engine-circuit)
 		- [Random write buffer](#random-write-buffer)
+			- [Circuit screenshots](#circuit-screenshots-1)
+			- [Usage in Engine circuit](#usage-in-engine-circuit-1)
 		- [Stable generation's buffer](#stable-generations-buffer)
+			- [Circuit screen and usage in Engine](#circuit-screen-and-usage-in-engine)
 		- [Environment data constructor](#environment-data-constructor)
+			- [Circuit screenshots](#circuit-screenshots-2)
+			- [Usage in Engine circuit](#usage-in-engine-circuit-2)
 		- [Row's bit invertor](#rows-bit-invertor)
+			- [Circuit screenshots](#circuit-screenshots-3)
+			- [Usage in Engine circuit](#usage-in-engine-circuit-3)
 		- [Binary selector](#binary-selector)
 		- [Blinker (bit changer)](#blinker-bit-changer)
 
@@ -423,22 +432,48 @@ This circuit considers 7-bit ASCII input as ASCII code and compares it with cons
 
 See keyboard layouts [here](#keyboard-layouts)
 
+#### Circuit screenshots
+
 ![Keyboard controller circuit](./keyboard-controller-circuit.png)
+
+#### Usage in Engine circuit
+Keyboard controller gives user signals that are used while simulation if off:
+- Y and X for [coordinates bus] 
+- Switch signal which is implemented as `Write row` in [random write buffer](#random-write-buffer)
 
 ![Keyboard controller usage](./keyboard-controller-usage.png)
 
 ### Random write buffer
+This circuit saves 32-bit row to one of 32 registers and sends all 32 saved rows to outputs.
 
-Multifunctional circuit that:
-- lets us save selected matrix row (32 bits) (west)
-- sends all 32 rows to the matrix (east)
+Trigger for registers is decoder with 5-bit selector `Y (row index)` and `Write row` enable input. So, buffer will save row from `Input row` to `Y`th register on rising of `Write row`.
 
-*Full inputs/outputs description*
+Clear signal resets all registers.
 
-**WORKS ASYNCHRONOUSLY (value from `Input row` saves when `Write row` rises)**
+#### Circuit screenshots
+
+<div class="columns">
+	<img width="45%" src="./RWB-circuit-1.png">
+	<img width="45%" src="./RWB-circuit-2.png">
+</div>
+
+#### Usage in Engine circuit
+In engine we get input row through tunnel from [row's bit invertor](#rows-bit-invertor)
+
+Clear signal can be handled while simulation is off.
+
+Y data goes from [coordinates bus]
+
+Write row signal goes:
+- From [keyboard controller](#keyboard-controller) when simulation is off
+- From [Register `0xf9`](#io-registers-for-changing-field) when simulation is on
+
+![Usage in Engine](./RWB-usage.png)
 
 ### Stable generation's buffer
 This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input `Save generation trigger`
+
+#### Circuit screen and usage in Engine
 
 <div class="columns">
 	<img width="45%" src="./SGB-usage.png">
@@ -448,13 +483,26 @@ This buffer just saves 32 32-bit rows from inputs to registers and sends them to
 ### Environment data constructor
 *soon*
 
+#### Circuit screenshots
+<div class="columns">
+	<img width="33%" src="./env-constructor-circuit-1.png">
+	<img width="60%" src="./env-constructor-circuit-2.png">
+</div>
+
+#### Usage in Engine circuit
+![Usage in Engine](./env-constructor-usage.png)
+
 ### Row's bit invertor
 This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. **For inversion we use decoder constructed bit mask and XOR**
+
+#### Circuit screenshots
 
 <div class="columns">
 	<img width="45%" src="./RBI-circuit-1.png">
 	<img width="45%" src="./RBI-circuit-2.png">
 </div>
+
+#### Usage in Engine circuit
 
 Inverted row goes through tunnel to `input row` of [random write buffer](#random-write-buffer)
 
