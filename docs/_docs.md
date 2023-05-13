@@ -610,7 +610,15 @@ Buffer update depends on simulation state:
 <img width="66%" src="./SGB-usage.png">
 
 ### Environment data constructor
-*soon*
+Job of this circuit is constructing data about cell's environment for [CdM-8 to determine new cell's state](#main-part).
+
+It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this steps:
+1. Get rows `Y-1`, `Y` and `Y` using multiplexers
+2. Right cycled shift 3 rows on `X-1` positions to get `X-1`, `X` and `X+1` bits on `0`, `1` and `2` positions and `X+2`, `X+3` and `X+4` on `31`, `30` and `29` positions
+   1. Send bit `1` from middle row to centre bit output
+   2. Use bits `[0,2]` from top and bottom rows and bits `0` and `2` from middle row as carry signals for 8 adders to get sum of cells surrounding centre bit
+3. Shifted rows goes to 32-bit splitters with XORs. When all XORs send true flag `is row env. null` will be true
+4. Bits `[x-1, X+4]` from all rows goes to next XORs. When these all send true flag `is half-byte env. null` will be true
 
 #### Circuit screenshots
 <div class="columns">
@@ -619,6 +627,10 @@ Buffer update depends on simulation state:
 </div>
 
 #### Usage in Engine circuit
+Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU with stable generation.
+
+All outputs go through tunnels to [I/O registers](#io-registers-with-environment-data) that are used in [ASM main cycle](#main-part)
+
 ![Usage in Engine](./env-constructor-usage.png)
 
 ### Row's bit invertor
@@ -632,8 +644,7 @@ This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row wi
 </div>
 
 #### Usage in Engine circuit
-
-Inverted row goes through tunnel to `input row` of [random write buffer](#random-write-buffer)
+32 input rows goes from [random write buffer](#random-write-buffer) and inverted row goes through tunnel to `input row` of [random write buffer](#random-write-buffer)
 
 ![Usage in Engine](./RBI-usage.png)
 
