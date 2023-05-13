@@ -12,6 +12,8 @@
 			- [`processBit`](#processbit)
 - [Logisim](#logisim)
 	- [Main concept](#main-concept)
+	- [Engine circuit](#engine-circuit)
+		- [Coordinates bus](#coordinates-bus)
 	- [Controls](#controls)
 		- [Main signals](#main-signals)
 		- [Keyboard](#keyboard)
@@ -26,7 +28,6 @@
 			- [I/O "registers" with environment data](#io-registers-with-environment-data)
 			- [I/O "registers" for changing field](#io-registers-for-changing-field)
 	- [Elements description](#elements-description)
-		- [Engine](#engine)
 		- [Keyboard controller](#keyboard-controller)
 			- [Circuit screenshots](#circuit-screenshots)
 			- [Usage in Engine circuit](#usage-in-engine-circuit)
@@ -445,9 +446,35 @@ Here you can see main jobs for Logisim part and logical ordered references for a
    3. [Random write buffer](#random-write-buffer)
    4. [Stable generation's buffer](#stable-generations-buffer)
 
+## Engine circuit
+![Engine usage](./main.png)
+
+This circuit is main one element of game. It handles [all inputs from user](#main-signals) and gives finally 32 32-bit rows to matrix and outputs `simulation on` and `selected cell's state`.
+
+<div class="columns">
+	<img width="58%" src="./engine-inputs-outputs.png">
+	<img width="40%" src="./engine-outputs-2.png">
+</div>
+
+This circuit contains:
+1. Most of all circuits below excepting [binary selector](#binary-selector) with connected to them [coordinates bus]():
+   - ![Subcircuits in engine](./engine-subcircuits.png)
+2. CdM-8 integration scheme with Harvard architecture: 
+   - <img width="70%" src="./engine-cdm8-integration.png">
+3. All [I/O registers](#io-registers): 
+   - <img width="70%" src="./engine-io-regs.png">
+
+### Coordinates bus
+Most of circuits work with coordinates `Y` (row index) and `X` (bit index) and coordinates go from 2 sources:
+- When simulation off they go from [keyboard controller](#keyboard-controller) which handles [user's inputs](#controls)
+- When simulation on they go from [2 I/O registers](#processed-cell)
+
+Therefore we use two multiplexers that choose coordinates source depending on simulation state:
+![Coordinates bus](./engine-coordinates-bus.png)
+
 ## Controls
 ### Main signals
-![](./main.png)
+<img width="66%" src="./main.png">
 
 Simulations switch button switches between simulation and setting modes. **When we turn from simulation to setting mode we can get unfinished new generation**
 
@@ -546,9 +573,6 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 ![I/O "registers" for changing field](./IO-change-signals.png)
 
 ## Elements description
-### Engine
-*soon*
-
 ### Keyboard controller
 This circuit considers 7-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:
 - Cycled increment/decrement X/Y of cursor
