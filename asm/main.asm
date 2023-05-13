@@ -46,13 +46,18 @@ br start
 #     Place for subroutines    #
 #==============================#
 spreadByte:
-	ldi r3, 0b00001000
+	# Iterator
+	ldi r3, 0b00001000 # 8
 	while
 		tst r3
 	stays nz
+		# The process of spreading byte
+		# Get lower bit and save to current cell
 		ldi r2, 0b00000001
 		and r0, r2
 		st r1, r2
+
+		# Increment cell address, shift data byte and decrement iterator
 		inc r1
 		shra r0
 		dec r3
