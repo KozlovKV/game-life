@@ -69,6 +69,9 @@
 		justify-content: space-around;
 		align-items: flex-start;
 	}
+	:not(pre):not(.hljs) > code {
+		color: #A98E55;
+	}
 	@media print {
 		hr {
 			page-break-after: always;
