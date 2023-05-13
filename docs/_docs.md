@@ -34,12 +34,13 @@
 			- [Circuit screenshots](#circuit-screenshots-1)
 			- [Usage in Engine circuit](#usage-in-engine-circuit-1)
 		- [Stable generation's buffer](#stable-generations-buffer)
+			- [Circuit screenshots](#circuit-screenshots-2)
 			- [Circuit screen and usage in Engine](#circuit-screen-and-usage-in-engine)
 		- [Environment data constructor](#environment-data-constructor)
-			- [Circuit screenshots](#circuit-screenshots-2)
+			- [Circuit screenshots](#circuit-screenshots-3)
 			- [Usage in Engine circuit](#usage-in-engine-circuit-2)
 		- [Row's bit invertor](#rows-bit-invertor)
-			- [Circuit screenshots](#circuit-screenshots-3)
+			- [Circuit screenshots](#circuit-screenshots-4)
 			- [Usage in Engine circuit](#usage-in-engine-circuit-3)
 		- [Binary selector](#binary-selector)
 		- [Blinker (bit changer)](#blinker-bit-changer)
@@ -118,20 +119,16 @@ st r0, r0
 **The reason for this action is [`PSEUDO WRITE`](#pseudo-write) mode for some I/O registers**
 
 ## RAM distribution
-- `0xd0` - game state (`0` - wait, `1` - simulate)
 - `0xe0` - birth's conditions first byte
 - `0xe8` - death's conditions first byte
 
-**Stack initial position - `0xd0`**
+**Stack initial position - `0xe0`**
 
-<details>
+<details open>
 <summary>Constants for this cells</summary>
 
 ```
 # Internal data addresses
-asect 0xd0
-gameMode:
-
 asect 0xe0
 birthConditionsRowStart:
 
@@ -143,7 +140,7 @@ deathConditionsRowStart:
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
 
-**See detailed description in [Logisim topic](#io-registers)**
+**See detailed description in [Logisim topic](#short-description-table)**
 
 <details>
 <summary>Constants for I/O cells</summary>
@@ -191,7 +188,7 @@ IOUpdateGeneration:
 ### Start part
 This part just waits whilst user presses start button and after it loads game conditions to RAM using [spreadByte subroutine](#spreadbyte)
 
-**For optimized conditions checking survival conditions inverts to death's conditions. [See more here](#list)**
+**For optimized conditions checking survival conditions [inverts to death's conditions](#simulation-rules). [See how it works here](#processbit)**
 
 <details>
 <summary>Code</summary>
@@ -235,7 +232,133 @@ start:
 </details>
 
 ### Main part
-*Add after minor editing*
+This part will repeats while simulations stays on.
+
+Before cycle we update stable generation's buffer using save signal to `IOUpdateGeneration` [referred to Logisim](#io-registers-for-changing-field). As a result, we can get correct data for processing cells.
+
+Main cycle iterates by `Y` (row index) in decreasing order `[31, 0]`.
+
+In next paragraphs we use term **environment**. It means that we analyze mentioned cells and border of 1 cells from all sides.
+
+We use to optimizations for skipping meaningless iterations:
+1. If rows `Y-1`, `Y` and `Y+1` (rows environment) are null (flag from `IONullRowsEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we increment `Y`.
+2. If rows environment isn't null we iterates by `X` in decreasing order `[31, 0]`, but divide iteration into 8 parts by 4 cells (we named it *half-byte environment*). If this half-byte environment is null (flag from `IONullHalfByteEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we skip this 4 cells
+
+If both flags above are `0` we get state of selected cell and its environment's sum using `IOBit` and `IOEnvSum` addresses which are referred to [I/O registers](#io-registers-with-environment-data)
+
+For zero sum:
+- Alive cell is killed immediately using save signal `IOInvertBitSignal` [referred to Logisim](#io-registers-for-changing-field)
+- Empty cell is skipped
+
+For non-zero sum we call subroutine [`processBit`](#processbit)
+
+<details>
+<summary>Code</summary>
+
+```
+main:
+	
+	# Update stable generation's buffer to get new data from env. data constructor
+	ldi r0, IOUpdateGeneration
+	st r0, r0
+	
+	# Count new cells' states
+	ldi r3, 31 # row iterator
+	do
+		# If game mode = 0 we interrupt cycle and go to start code part
+		# NEW GENERATION CAN BE COUNTED PARTITIONALLY 
+		ldi r0, IOGameMode
+		ld r0, r0
+		tst r0
+		bz start
+
+		push r3 # Save row iterator
+
+		# Send Y to logisim
+		ldi r0, IOY
+		st r0, r3
+
+		# If all rows in env. are null => skip this row
+		ldi r3, IONullRowsEnv
+		ld r3, r3
+		tst r3
+		bnz rowProcessed
+
+		ldi r1, 31 # Bit index
+		ldi r3, 8 # Half-bytes iterator
+		do 
+			push r3 # Save half-bytes in row iterator
+
+			# Send X to Logisim
+			ldi r0, IOX
+			st r0, r1
+
+			# Get half-byte env. (centre cells [x, x-3]) 
+			# If it is null => 4 cells will be skipped
+			ldi r0, IONullHalfByteEnv
+			ld r0, r0
+			tst r0
+			bnz skipHalfByte
+
+			# Iteration by half-byte
+			ldi r3, 4
+			do
+				push r1
+
+				# Send X to Logisim for every new cell
+				ldi r0, IOX
+				st r0, r1
+
+				# Read data for this cell
+				ldi r0, IOEnvSum
+				ld r0, r0
+				ldi r1, IOBit
+				ld r1, r1
+
+				# Check birth or death conditions and save bit depends on conditions
+				if
+					tst r0
+				is nz
+					jsr processBit
+				else
+					# If sum = 0 alive cell must die
+					if 
+						tst r1
+					is nz
+						ldi r0, IOInvertBitSignal
+						st r0, r0
+					fi
+				fi
+
+				# Decrement X (bit index)
+				pop r1
+				dec r1
+
+				# Decrement half-byte iterator
+				dec r3
+			until z
+			br byteProcessed
+			skipHalfByte:
+				# If half-byte was skipped we descrease X by 4
+				ldi r0, -4
+				add r0, r1
+			byteProcessed:
+
+			# Get and decrement half-bytes in row iterator
+			pop r3
+			dec r3
+		until z
+		rowProcessed:
+
+		# Get and decrement row iterator
+		pop r3
+		dec r3
+	until mi
+# Infinite simulation cycle
+br main
+```
+
+</details>
 
 ### Subroutines
 #### `spreadByte`
@@ -373,20 +496,21 @@ Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 #### `PSEUDO WRITE`
 Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handle `write` signal by CdM-8's `st` instruction.
 
+
 ### Short description table
-CELL ADDR.    | "NAME"              | DATA DIRECTION TYPE |
-:--           | :--                 | :--                 |
-`0xf0`        | GAME STATE          | `READ ONLY`         |
-`0xf1`        | BIRTH CONDITIONS    | `READ ONLY`         |
-`0xf2`        | DEATH CONDITIONS    | `READ ONLY`         |
-`0xf3`        | Y                   | `WRITE ONLY`        |
-`0xf4`        | X                   | `WRITE ONLY`        |
-`0xf5`        | SELECTED BIT        | `READ ONLY`         |
-`0xf6`        | ENVIRONMENT SUM     | `READ ONLY`         |
-`0xf7`        | NULL ROWS ENV.      | `READ ONLY`         |
-`0xf8`        | NULL HALF-BYTE ENV. | `READ ONLY`         |
-`0xf9`        | INVERSION SIGNAL    | `PSEUDO WRITE`      |
-`0xfa`        | UPDATE GENERATION   | `PSEUDO WRITE`      |
+CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
+:--           | :--                  | :--            | :-:
+`0xf0`        | `IOGameMode`         | `READ ONLY`      <td rowspan="3">[Link](#simulation-rules)</td>
+`0xf1`        | `IOBirthConditions`  | `READ ONLY`    |
+`0xf2`        | `IODeathConditions`  | `READ ONLY`    |
+`0xf3`        | `IOY`                | `WRITE ONLY`     <td rowspan="2">[Link](#processed-cell)</td>
+`0xf4`        | `IOX`                | `WRITE ONLY`   |
+`0xf5`        | `IOBit`              | `READ ONLY`      <td rowspan="4">[Link](#io-registers-with-environment-data)</td>
+`0xf6`        | `IOEnvSum`           | `READ ONLY`    |
+`0xf7`        | `IONullRowsEnv`      | `READ ONLY`    |
+`0xf8`        | `IONullHalfByteEnv`  | `READ ONLY`    |
+`0xf9`        | `IOInvertBitSignal`  | `PSEUDO WRITE`   <td rowspan="2">[Link](#io-registers-for-changing-field)</td>
+`0xfa`        | `IOUpdateGeneration` | `PSEUDO WRITE` |
 
 ### List with descriptions
 #### Simulation rules
@@ -410,7 +534,7 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 - `0xf5` - READ ONLY - 1 when bit on position `(Y, X)` is 1
 - `0xf6` - READ ONLY - sum of bits around cell `(Y, X)`
 - `0xf7` - READ ONLY - 1 when rows `Y-1`, `Y` and `Y+1` are null
-- `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X-1` to `X+4` are null
+- `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X+1` to `X-4` are null
 
 ![I/O "registers" with environment data 1](./IO-env-1.png)
 ![I/O "registers" with environment data 2](./IO-env-2.png)
@@ -473,12 +597,17 @@ Write row signal goes:
 ### Stable generation's buffer
 This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input `Save generation trigger`
 
+#### Circuit screenshots
+
+<img width="66%" src="./SGB-circuit.png">
+
 #### Circuit screen and usage in Engine
 
-<div class="columns">
-	<img width="45%" src="./SGB-usage.png">
-	<img width="45%" src="./SGB-circuit.png">
-</div>
+Buffer update depends on simulation state:
+- While simulation is off buffer is updated by `clock`
+- While simulation is on buffer is updated after [CdM-8 main cycle's full execution](#main-part) by signal from [pseudo I/O register](#io-registers-for-changing-field)
+
+<img width="66%" src="./SGB-usage.png">
 
 ### Environment data constructor
 *soon*
