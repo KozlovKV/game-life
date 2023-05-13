@@ -1,7 +1,4 @@
 # Internal data addresses
-asect 0xd0
-gameMode:
-
 asect 0xe0
 birthConditionsRowStart:
 
@@ -91,7 +88,7 @@ rts
 
 start:
 	# Move SP before I/O and field addresses
-	setsp 0xd0
+	setsp 0xe0
 
 
 	# Waiting for IOGameMode I/O reg. != 0
@@ -100,9 +97,6 @@ start:
 		ld r1, r0
 		tst r0
 	until nz
-
-	ldi r1, gameMode
-	st r1, r0
 
 	# Read birth and death conditions from I/O regs.
 	ldi r1, IOBirthConditions
@@ -116,19 +110,23 @@ start:
 
 main:
 	
+	# Update stable generation's buffer to get new data from env. data constructor
 	ldi r0, IOUpdateGeneration
 	st r0, r0
 	
-	# Count new bytes states
+	# Count new cells' states
 	ldi r3, 31 # row iterator
 	do
-		# If game mode stays = 0 we go to start code part 
+		# If game mode = 0 we interrupt cycle and go to start code part
+		# NEW GENERATION CAN BE COUNTED PARTITIONALLY 
 		ldi r0, IOGameMode
 		ld r0, r0
 		tst r0
 		bz start
 
 		push r3 # Save row iterator
+
+		# Send Y to logisim
 		ldi r0, IOY
 		st r0, r3
 
@@ -139,24 +137,27 @@ main:
 		bnz rowProcessed
 
 		ldi r1, 31 # Bit index
-		ldi r3, 8 # byte in row iterator
+		ldi r3, 8 # Half-bytes iterator
 		do 
-			push r3 # Save byte in row iterator
+			push r3 # Save half-bytes in row iterator
 
-			# byte env. (from x-7 to x) is null => byte will be 0
+			# Send X to Logisim
 			ldi r0, IOX
 			st r0, r1
+
+			# Get half-byte env. (centre cells [x, x-3]) 
+			# If it is null => 4 cells will be skipped
 			ldi r0, IONullHalfByteEnv
 			ld r0, r0
 			tst r0
 			bnz skipHalfByte
 
+			# Iteration by half-byte
 			ldi r3, 4
 			do
 				push r1
 
-				# Send to logisim coords of current cell
-				
+				# Send X to Logisim for every new cell
 				ldi r0, IOX
 				st r0, r1
 
@@ -185,19 +186,24 @@ main:
 				pop r1
 				dec r1
 
+				# Decrement half-byte iterator
 				dec r3
 			until z
 			br byteProcessed
 			skipHalfByte:
+				# If half-byte was skipped we descrease X by 4
 				ldi r0, -4
 				add r0, r1
 			byteProcessed:
+
+			# Get and decrement half-bytes in row iterator
 			pop r3
 			dec r3
 		until z
 		rowProcessed:
 
-		pop r3 # Get row iterator
+		# Get and decrement row iterator
+		pop r3
 		dec r3
 	until mi
 # Infinite simulation cycle
