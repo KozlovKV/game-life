@@ -12,6 +12,8 @@
 			- [`processBit`](#processbit)
 - [Logisim](#logisim)
 	- [Main concept](#main-concept)
+	- [Engine circuit](#engine-circuit)
+		- [Coordinates bus](#coordinates-bus)
 	- [Controls](#controls)
 		- [Main signals](#main-signals)
 		- [Keyboard](#keyboard)
@@ -26,12 +28,21 @@
 			- [I/O "registers" with environment data](#io-registers-with-environment-data)
 			- [I/O "registers" for changing field](#io-registers-for-changing-field)
 	- [Elements description](#elements-description)
-		- [Engine](#engine)
 		- [Keyboard controller](#keyboard-controller)
+			- [Circuit screenshots](#circuit-screenshots)
+			- [Usage in Engine circuit](#usage-in-engine-circuit)
 		- [Random write buffer](#random-write-buffer)
+			- [Circuit screenshots](#circuit-screenshots-1)
+			- [Usage in Engine circuit](#usage-in-engine-circuit-1)
 		- [Stable generation's buffer](#stable-generations-buffer)
+			- [Circuit screenshots](#circuit-screenshots-2)
+			- [Circuit screen and usage in Engine](#circuit-screen-and-usage-in-engine)
 		- [Environment data constructor](#environment-data-constructor)
+			- [Circuit screenshots](#circuit-screenshots-3)
+			- [Usage in Engine circuit](#usage-in-engine-circuit-2)
 		- [Row's bit invertor](#rows-bit-invertor)
+			- [Circuit screenshots](#circuit-screenshots-4)
+			- [Usage in Engine circuit](#usage-in-engine-circuit-3)
 		- [Binary selector](#binary-selector)
 		- [Blinker (bit changer)](#blinker-bit-changer)
 
@@ -109,20 +120,16 @@ st r0, r0
 **The reason for this action is [`PSEUDO WRITE`](#pseudo-write) mode for some I/O registers**
 
 ## RAM distribution
-- `0xd0` - game state (`0` - wait, `1` - simulate)
 - `0xe0` - birth's conditions first byte
 - `0xe8` - death's conditions first byte
 
-**Stack initial position - `0xd0`**
+**Stack initial position - `0xe0`**
 
-<details>
+<details open>
 <summary>Constants for this cells</summary>
 
 ```
 # Internal data addresses
-asect 0xd0
-gameMode:
-
 asect 0xe0
 birthConditionsRowStart:
 
@@ -134,7 +141,7 @@ deathConditionsRowStart:
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
 
-**See detailed description in [Logisim topic](#io-registers)**
+**See detailed description in [Logisim topic](#short-description-table)**
 
 <details>
 <summary>Constants for I/O cells</summary>
@@ -182,7 +189,7 @@ IOUpdateGeneration:
 ### Start part
 This part just waits whilst user presses start button and after it loads game conditions to RAM using [spreadByte subroutine](#spreadbyte)
 
-**For optimized conditions checking survival conditions inverts to death's conditions. [See more here](#list)**
+**For optimized conditions checking survival conditions [inverts to death's conditions](#simulation-rules). [See how it works here](#processbit)**
 
 <details>
 <summary>Code</summary>
@@ -226,11 +233,163 @@ start:
 </details>
 
 ### Main part
-*Add after minor editing*
+This part will repeats while simulations stays on.
+
+Before cycle we update stable generation's buffer using save signal to `IOUpdateGeneration` [referred to Logisim](#io-registers-for-changing-field). As a result, we can get correct data for processing cells.
+
+Main cycle iterates by `Y` (row index) in decreasing order `[31, 0]`.
+
+In next paragraphs we use term **environment**. It means that we analyze mentioned cells and border of 1 cells from all sides.
+
+We use to optimizations for skipping meaningless iterations:
+1. If rows `Y-1`, `Y` and `Y+1` (rows environment) are null (flag from `IONullRowsEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we increment `Y`.
+2. If rows environment isn't null we iterates by `X` in decreasing order `[31, 0]`, but divide iteration into 8 parts by 4 cells (we named it *half-byte environment*). If this half-byte environment is null (flag from `IONullHalfByteEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we skip this 4 cells
+
+If both flags above are `0` we get state of selected cell and its environment's sum using `IOBit` and `IOEnvSum` addresses which are referred to [I/O registers](#io-registers-with-environment-data)
+
+For zero sum:
+- Alive cell is killed immediately using save signal `IOInvertBitSignal` [referred to Logisim](#io-registers-for-changing-field)
+- Empty cell is skipped
+
+For non-zero sum we call subroutine [`processBit`](#processbit)
+
+<details>
+<summary>Code</summary>
+
+```
+main:
+	
+	# Update stable generation's buffer to get new data from env. data constructor
+	ldi r0, IOUpdateGeneration
+	st r0, r0
+	
+	# Count new cells' states
+	ldi r3, 31 # row iterator
+	do
+		# If game mode = 0 we interrupt cycle and go to start code part
+		# NEW GENERATION CAN BE COUNTED PARTITIONALLY 
+		ldi r0, IOGameMode
+		ld r0, r0
+		tst r0
+		bz start
+
+		push r3 # Save row iterator
+
+		# Send Y to logisim
+		ldi r0, IOY
+		st r0, r3
+
+		# If all rows in env. are null => skip this row
+		ldi r3, IONullRowsEnv
+		ld r3, r3
+		tst r3
+		bnz rowProcessed
+
+		ldi r1, 31 # Bit index
+		ldi r3, 8 # Half-bytes iterator
+		do 
+			push r3 # Save half-bytes in row iterator
+
+			# Send X to Logisim
+			ldi r0, IOX
+			st r0, r1
+
+			# Get half-byte env. (centre cells [x, x-3]) 
+			# If it is null => 4 cells will be skipped
+			ldi r0, IONullHalfByteEnv
+			ld r0, r0
+			tst r0
+			bnz skipHalfByte
+
+			# Iteration by half-byte
+			ldi r3, 4
+			do
+				push r1
+
+				# Send X to Logisim for every new cell
+				ldi r0, IOX
+				st r0, r1
+
+				# Read data for this cell
+				ldi r0, IOEnvSum
+				ld r0, r0
+				ldi r1, IOBit
+				ld r1, r1
+
+				# Check birth or death conditions and save bit depends on conditions
+				if
+					tst r0
+				is nz
+					jsr processBit
+				else
+					# If sum = 0 alive cell must die
+					if 
+						tst r1
+					is nz
+						ldi r0, IOInvertBitSignal
+						st r0, r0
+					fi
+				fi
+
+				# Decrement X (bit index)
+				pop r1
+				dec r1
+
+				# Decrement half-byte iterator
+				dec r3
+			until z
+			br byteProcessed
+			skipHalfByte:
+				# If half-byte was skipped we descrease X by 4
+				ldi r0, -4
+				add r0, r1
+			byteProcessed:
+
+			# Get and decrement half-bytes in row iterator
+			pop r3
+			dec r3
+		until z
+		rowProcessed:
+
+		# Get and decrement row iterator
+		pop r3
+		dec r3
+	until mi
+# Infinite simulation cycle
+br main
+```
+
+</details>
 
 ### Subroutines
 #### `spreadByte`
-*Add spread byte description*
+- This subroutine spread byte from `r0` into cells from `r1` to `r1 + 7`. In other words `spreadByte` writes every bit of byte from `r0`
+to cells from `r1` to `r1 + 7`, writing the low order bit into `r1` and the high oreder bit into `r1 + 7`.
+- `spreadByte` is used to write game settings to the memory. 
+- Thanks to `spreadByte` we can easily decide what we should do with current cell without using loops.
+
+<details>
+<summary>Code</summary>
+<br>
+
+```
+spreadByte:
+	# Iterator
+	ldi r3, 0b00001000
+	while
+		tst r3
+	is nz
+		# The process of spreading byte
+		ldi r2, 0b00000001
+		and r0, r2
+		st r1, r2
+		inc r1
+		shra r0
+		dec r3
+	wend
+rts	
+```
+</details>
 
 #### `processBit`
 - This subroutine gets neighbors' sum in `r0` and centre bit value in `r1`.
@@ -313,9 +472,35 @@ Here you can see main jobs for Logisim part and logical ordered references for a
    3. [Random write buffer](#random-write-buffer)
    4. [Stable generation's buffer](#stable-generations-buffer)
 
+## Engine circuit
+![Engine usage](./main.png)
+
+This circuit is main one element of game. It handles [all inputs from user](#main-signals) and gives finally 32 32-bit rows to matrix and outputs `simulation on` and `selected cell's state`.
+
+<div class="columns">
+	<img width="58%" src="./engine-inputs-outputs.png">
+	<img width="40%" src="./engine-outputs-2.png">
+</div>
+
+This circuit contains:
+1. Most of all circuits below excepting [binary selector](#binary-selector) with connected to them [coordinates bus]():
+   - ![Subcircuits in engine](./engine-subcircuits.png)
+2. CdM-8 integration scheme with Harvard architecture: 
+   - <img width="70%" src="./engine-cdm8-integration.png">
+3. All [I/O registers](#io-registers): 
+   - <img width="70%" src="./engine-io-regs.png">
+
+### Coordinates bus
+Most of circuits work with coordinates `Y` (row index) and `X` (bit index) and coordinates go from 2 sources:
+- When simulation off they go from [keyboard controller](#keyboard-controller) which handles [user's inputs](#controls)
+- When simulation on they go from [2 I/O registers](#processed-cell)
+
+Therefore we use two multiplexers that choose coordinates source depending on simulation state:
+![Coordinates bus](./engine-coordinates-bus.png)
+
 ## Controls
 ### Main signals
-![](./main.png)
+<img width="66%" src="./main.png">
 
 Simulations switch button switches between simulation and setting modes. **When we turn from simulation to setting mode we can get unfinished new generation**
 
@@ -364,20 +549,21 @@ Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 #### `PSEUDO WRITE`
 Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handle `write` signal by CdM-8's `st` instruction.
 
+
 ### Short description table
-CELL ADDR.    | "NAME"              | DATA DIRECTION TYPE |
-:--           | :--                 | :--                 |
-`0xf0`        | GAME STATE          | `READ ONLY`         |
-`0xf1`        | BIRTH CONDITIONS    | `READ ONLY`         |
-`0xf2`        | DEATH CONDITIONS    | `READ ONLY`         |
-`0xf3`        | Y                   | `WRITE ONLY`        |
-`0xf4`        | X                   | `WRITE ONLY`        |
-`0xf5`        | SELECTED BIT        | `READ ONLY`         |
-`0xf6`        | ENVIRONMENT SUM     | `READ ONLY`         |
-`0xf7`        | NULL ROWS ENV.      | `READ ONLY`         |
-`0xf8`        | NULL HALF-BYTE ENV. | `READ ONLY`         |
-`0xf9`        | INVERSION SIGNAL    | `PSEUDO WRITE`      |
-`0xfa`        | UPDATE GENERATION   | `PSEUDO WRITE`      |
+CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
+:--           | :--                  | :--            | :-:
+`0xf0`        | `IOGameMode`         | `READ ONLY`      <td rowspan="3">[Link](#simulation-rules)</td>
+`0xf1`        | `IOBirthConditions`  | `READ ONLY`    |
+`0xf2`        | `IODeathConditions`  | `READ ONLY`    |
+`0xf3`        | `IOY`                | `WRITE ONLY`     <td rowspan="2">[Link](#processed-cell)</td>
+`0xf4`        | `IOX`                | `WRITE ONLY`   |
+`0xf5`        | `IOBit`              | `READ ONLY`      <td rowspan="4">[Link](#io-registers-with-environment-data)</td>
+`0xf6`        | `IOEnvSum`           | `READ ONLY`    |
+`0xf7`        | `IONullRowsEnv`      | `READ ONLY`    |
+`0xf8`        | `IONullHalfByteEnv`  | `READ ONLY`    |
+`0xf9`        | `IOInvertBitSignal`  | `PSEUDO WRITE`   <td rowspan="2">[Link](#io-registers-for-changing-field)</td>
+`0xfa`        | `IOUpdateGeneration` | `PSEUDO WRITE` |
 
 ### List with descriptions
 #### Simulation rules
@@ -401,7 +587,7 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 - `0xf5` - READ ONLY - 1 when bit on position `(Y, X)` is 1
 - `0xf6` - READ ONLY - sum of bits around cell `(Y, X)`
 - `0xf7` - READ ONLY - 1 when rows `Y-1`, `Y` and `Y+1` are null
-- `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X-1` to `X+4` are null
+- `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X+1` to `X-4` are null
 
 ![I/O "registers" with environment data 1](./IO-env-1.png)
 ![I/O "registers" with environment data 2](./IO-env-2.png)
@@ -413,9 +599,6 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 ![I/O "registers" for changing field](./IO-change-signals.png)
 
 ## Elements description
-### Engine
-*soon*
-
 ### Keyboard controller
 This circuit considers 7-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:
 - Cycled increment/decrement X/Y of cursor
@@ -423,55 +606,132 @@ This circuit considers 7-bit ASCII input as ASCII code and compares it with cons
 
 See keyboard layouts [here](#keyboard-layouts)
 
+#### Circuit screenshots
+
 ![Keyboard controller circuit](./keyboard-controller-circuit.png)
+
+#### Usage in Engine circuit
+Keyboard controller gives user signals that are used while simulation if off:
+- Y and X for [coordinates bus] 
+- Switch signal which is implemented as `Write row` in [random write buffer](#random-write-buffer)
 
 ![Keyboard controller usage](./keyboard-controller-usage.png)
 
 ### Random write buffer
+This circuit saves 32-bit row to one of 32 registers and sends all 32 saved rows to outputs.
 
-Multifunctional circuit that:
-- lets us save selected matrix row (32 bits) (west)
-- sends all 32 rows to the matrix (east)
+Trigger for registers is decoder with 5-bit selector `Y (row index)` and `Write row` enable input. So, buffer will save row from `Input row` to `Y`th register on rising of `Write row`.
 
-*Full inputs/outputs description*
+Clear signal resets all registers.
 
-**WORKS ASYNCHRONOUSLY (value from `Input row` saves when `Write row` rises)**
+#### Circuit screenshots
+
+<div class="columns">
+	<img width="45%" src="./RWB-circuit-1.png">
+	<img width="45%" src="./RWB-circuit-2.png">
+</div>
+
+#### Usage in Engine circuit
+In engine we get input row through tunnel from [row's bit invertor](#rows-bit-invertor)
+
+Clear signal can be handled while simulation is off.
+
+Y data goes from [coordinates bus]
+
+Write row signal goes:
+- From [keyboard controller](#keyboard-controller) when simulation is off
+- From [Register `0xf9`](#io-registers-for-changing-field) when simulation is on
+
+![Usage in Engine](./RWB-usage.png)
 
 ### Stable generation's buffer
 This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input `Save generation trigger`
 
-<div class="columns">
-	<img width="45%" src="./SGB-usage.png">
-	<img width="45%" src="./SGB-circuit.png">
-</div>
+#### Circuit screenshots
+
+<img width="66%" src="./SGB-circuit.png">
+
+#### Circuit screen and usage in Engine
+
+Buffer update depends on simulation state:
+- While simulation is off buffer is updated by `clock`
+- While simulation is on buffer is updated after [CdM-8 main cycle's full execution](#main-part) by signal from [pseudo I/O register](#io-registers-for-changing-field)
+
+<img width="66%" src="./SGB-usage.png">
 
 ### Environment data constructor
-*soon*
+Job of this circuit is constructing data about cell's environment for [CdM-8 to determine new cell's state](#main-part).
+
+It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this steps:
+1. Get rows `Y-1`, `Y` and `Y` using multiplexers
+2. Right cycled shift 3 rows on `X-1` positions to get `X-1`, `X` and `X+1` bits on `0`, `1` and `2` positions and `X+2`, `X+3` and `X+4` on `31`, `30` and `29` positions
+   1. Send bit `1` from middle row to centre bit output
+   2. Use bits `[0,2]` from top and bottom rows and bits `0` and `2` from middle row as carry signals for 8 adders to get sum of cells surrounding centre bit
+3. Shifted rows goes to 32-bit splitters with XORs. When all XORs send true flag `is row env. null` will be true
+4. Bits `[x-1, X+4]` from all rows goes to next XORs. When these all send true flag `is half-byte env. null` will be true
+
+#### Circuit screenshots
+<div class="columns">
+	<img width="33%" src="./env-constructor-circuit-1.png">
+	<img width="60%" src="./env-constructor-circuit-2.png">
+</div>
+
+#### Usage in Engine circuit
+Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU with stable generation.
+
+All outputs go through tunnels to [I/O registers](#io-registers-with-environment-data) that are used in [ASM main cycle](#main-part)
+
+![Usage in Engine](./env-constructor-usage.png)
 
 ### Row's bit invertor
 This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. **For inversion we use decoder constructed bit mask and XOR**
+
+#### Circuit screenshots
 
 <div class="columns">
 	<img width="45%" src="./RBI-circuit-1.png">
 	<img width="45%" src="./RBI-circuit-2.png">
 </div>
 
-Inverted row goes through tunnel to `input row` of [random write buffer](#random-write-buffer)
+#### Usage in Engine circuit
+32 input rows goes from [random write buffer](#random-write-buffer) and inverted row goes through tunnel to `input row` of [random write buffer](#random-write-buffer)
 
 ![Usage in Engine](./RBI-usage.png)
 
 ### Binary selector
-*soon*
+`Binary selector`. This circuit should choose one of two input values. `Binary selector` should choose second value if the `switch` input is rised and first value otherwise.
+
+Inputs:
+- input values, 2 32-bit rows
+- switch, 1 1-bit row
+
+Outputs:
+- selected value, 1 32-bit row
+
+<div class="columns">
+	<img width="45%" src="./binary_selector1.png">
+	<img width="45%" src="./binary_selector2.png">
+</div>
 
 ### Blinker (bit changer)
-Переключатель бита в матрице. Должен будет переключать значение заданного бита на противоположное, если поднимается вход switch. Важно, что данный элемент не должен хранить в себе новые значения, а должен просто направлять их наружу
+`Blinker (bit changer)`. `Blinker` must switch value of current bit to opposite if the `switch` input is rised. It is important that this circuit should not store new values in itself. This circuit should direct new values to outputs.
 
-Входы:
-- строки матрицы, 32 входа по 32 бита
-- координата Y (номер строки), 5 бит
-- координата X (номер бита в строке), 5 бит
-- switch - при его поднятии выбранный бит должен будет измениться на обратный
+Inputs:
+- matrix rows, 32 32-bit rows
+- Y coordinate (row number), 5-bit row
+- X coordinate (bit number in the row), 5-bit row
+- switch - if this input is rised current bit must switch to opposite
 
-Выходы:
-- 32 выхода по 32 бита, в одном из которых один бит был изменён
-- строка с изменённым битом длиной 32 бита
+Outputs:
+- 32 32-bit outputs, in one of which one bit was changed
+
+<div class="columns">
+	<img width="45%" src="./blinker1.png">
+	<img width="45%" src="./blinker2.png">
+</div>
+
+
+Usage `Blinker` in engine
+<div class="rows">
+	<img width="20%" src="./blinker3.png">
+</div>
