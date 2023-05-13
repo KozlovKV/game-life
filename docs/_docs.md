@@ -230,7 +230,33 @@ start:
 
 ### Subroutines
 #### `spreadByte`
-*Add spread byte description*
+- This subroutine spread byte from `r0` into cells from `r1` to `r1 + 7`. In other words `spreadByte` writes every bit of byte from `r0`
+to cells from `r1` to `r1 + 7`, writing the low order bit into `r1` and the high oreder bit into `r1 + 7`.
+- `spreadByte` is used to write game settings to the memory. 
+- Thanks to `spreadByte` we can easily decide what we should do with current cell without using loops.
+
+<details>
+<summary>Code</summary>
+<br>
+
+```
+spreadByte:
+	# Iterator
+	ldi r3, 0b00001000
+	while
+		tst r3
+	is nz
+		# The process of spreading byte
+		ldi r2, 0b00000001
+		and r0, r2
+		st r1, r2
+		inc r1
+		shra r0
+		dec r3
+	wend
+rts	
+```
+</details>
 
 #### `processBit`
 - This subroutine gets neighbors' sum in `r0` and centre bit value in `r1`.
@@ -461,17 +487,39 @@ Inverted row goes through tunnel to `input row` of [random write buffer](#random
 ![Usage in Engine](./RBI-usage.png)
 
 ### Binary selector
-*soon*
+`Binary selector`. This circuit should choose one of two input values. `Binary selector` should choose second value if the `switch` input is rised and first value otherwise.
+
+Inputs:
+- input values, 2 32-bit rows
+- switch, 1 1-bit row
+
+Outputs:
+- selected value, 1 32-bit row
+
+<div class="columns">
+	<img width="45%" src="./binary_selector1.png">
+	<img width="45%" src="./binary_selector2.png">
+</div>
 
 ### Blinker (bit changer)
-Переключатель бита в матрице. Должен будет переключать значение заданного бита на противоположное, если поднимается вход switch. Важно, что данный элемент не должен хранить в себе новые значения, а должен просто направлять их наружу
+`Blinker (bit changer)`. `Blinker` must switch value of current bit to opposite if the `switch` input is rised. It is important that this circuit should not store new values in itself. This circuit should direct new values to outputs.
 
-Входы:
-- строки матрицы, 32 входа по 32 бита
-- координата Y (номер строки), 5 бит
-- координата X (номер бита в строке), 5 бит
-- switch - при его поднятии выбранный бит должен будет измениться на обратный
+Inputs:
+- matrix rows, 32 32-bit rows
+- Y coordinate (row number), 5-bit row
+- X coordinate (bit number in the row), 5-bit row
+- switch - if this input is rised current bit must switch to opposite
 
-Выходы:
-- 32 выхода по 32 бита, в одном из которых один бит был изменён
-- строка с изменённым битом длиной 32 бита
+Outputs:
+- 32 32-bit outputs, in one of which one bit was changed
+
+<div class="columns">
+	<img width="45%" src="./blinker1.png">
+	<img width="45%" src="./blinker2.png">
+</div>
+
+
+Usage `Blinker` in engine
+<div class="rows">
+	<img width="20%" src="./blinker3.png">
+</div>
