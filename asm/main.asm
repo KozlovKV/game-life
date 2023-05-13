@@ -31,7 +31,7 @@ asect 0xf7
 IONullRowsEnv:
 
 asect 0xf8
-IONullHalfByteEnv:
+IONextSignificantX:
 
 asect 0xf9
 IOInvertBitSignal:
@@ -141,70 +141,48 @@ main:
 		tst r3
 		bnz rowProcessed
 
-		ldi r1, 31 # Bit index
-		ldi r3, 8 # Half-bytes iterator
+		ldi r1, 0 # Value for searching first significant X
+
+		# Send X to Logisim
+		ldi r0, IOX
+		st r0, r1
+
+		ldi r3, IONextSignificantX
+		ld r3, r2
+
 		do 
-			push r3 # Save half-bytes in row iterator
+			move r2, r1
+			push r1
 
 			# Send X to Logisim
 			ldi r0, IOX
 			st r0, r1
 
-			# Get half-byte env. (centre cells [x, x-3]) 
-			# If it is null => 4 cells will be skipped
-			ldi r0, IONullHalfByteEnv
+			# Read data for this cell
+			ldi r0, IOEnvSum
 			ld r0, r0
-			tst r0
-			bnz skipHalfByte
+			ldi r1, IOBit
+			ld r1, r1
 
-			# Iteration by half-byte
-			ldi r3, 4
-			do
-				push r1
-
-				# Send X to Logisim for every new cell
-				ldi r0, IOX
-				st r0, r1
-
-				# Read data for this cell
-				ldi r0, IOEnvSum
-				ld r0, r0
-				ldi r1, IOBit
-				ld r1, r1
-
-				# Check birth or death conditions and save bit depends on conditions
-				if
-					tst r0
+			# Check birth or death conditions and save bit depends on conditions
+			if
+				tst r0
+			is nz
+				jsr processBit
+			else
+				# If sum = 0 alive cell must die
+				if 
+					tst r1
 				is nz
-					jsr processBit
-				else
-					# If sum = 0 alive cell must die
-					if 
-						tst r1
-					is nz
-						ldi r0, IOInvertBitSignal
-						st r0, r0
-					fi
+					ldi r0, IOInvertBitSignal
+					st r0, r0
 				fi
+			fi
 
-				# Decrement X (bit index)
-				pop r1
-				dec r1
-
-				# Decrement half-byte iterator
-				dec r3
-			until z
-			br byteProcessed
-			skipHalfByte:
-				# If half-byte was skipped we descrease X by 4
-				ldi r0, -4
-				add r0, r1
-			byteProcessed:
-
-			# Get and decrement half-bytes in row iterator
-			pop r3
-			dec r3
-		until z
+			pop r1
+			ld r3, r2
+			cmp r2, r1 
+		until ge
 		rowProcessed:
 
 		# Get and decrement row iterator

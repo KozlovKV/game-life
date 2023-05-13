@@ -31,6 +31,7 @@
 		- [Keyboard controller](#keyboard-controller)
 		- [Random write buffer](#random-write-buffer)
 		- [Stable generation's buffer](#stable-generations-buffer)
+		- [Row environment mask](#row-environment-mask)
 		- [Environment data constructor](#environment-data-constructor)
 		- [Row's bit invertor](#rows-bit-invertor)
 		- [Binary selector](#binary-selector)
@@ -245,6 +246,8 @@ start:
 ---
 
 ### Main cycle
+*Edit to new version!*
+
 This part will repeats while simulations stays on.
 
 Before cycle we update stable generation's buffer using save signal to `IOUpdateGeneration` [referred to Logisim](#io-registers-for-changing-field). As a result, we can get correct data for processing cells.
@@ -609,6 +612,8 @@ Coordinates from these registers are used in all Logisim components to tell what
 ![Coordinates registers](./IO-coords.png)
 
 #### I/O "registers" with environment data
+*Edit to new version!*
+
 These "registers" aren't exist. There are just tunnels which are connected to [environment constructor outputs](#environment-data-constructor):
 - `0xf5` - READ ONLY - 1 when bit on position `(Y, X)` is 1
 - `0xf6` - READ ONLY - sum of bits around cell `(Y, X)`
@@ -694,7 +699,12 @@ Buffer update depends on simulation state:
 
 ---
 
+### Row environment mask
+*Edit to new version!*
+
 ### Environment data constructor
+*Edit to new version!*
+
 Job of this circuit is constructing data about cell's environment for [CdM-8 to determine new cell's state](#main-cycle).
 
 It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this steps:
