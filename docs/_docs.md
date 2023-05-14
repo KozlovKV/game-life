@@ -105,13 +105,17 @@
 ---
 
 # Differences from the basic technical task
-We have made 2 powerful improvements and 1 concept change from the basic technical task.
+We have made 2 powerful improvements and 2 concept changes from the basic technical task.
 
 **Improvements:**
 1. We have composed a toroidal cycled field with size `32*32`
 2. We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from `1` to `8`.
 
-**Concept change** - we have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
+**Concept changes:**
+1. We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
+2. Video buffer (named [random write buffer]) has been made asynchronous. Besides, we have add `clear` input to it.
+
+**[Other components] wasn't mentioned in basic technical project**
 
 *[Back to table of contents](#table-of-contents)*
 
