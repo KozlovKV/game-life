@@ -430,6 +430,8 @@ blockquote {
 <h1 id="table-of-contents">Table of contents</h1>
 <ul>
 <li><a href="#table-of-contents">Table of contents</a></li>
+<li><a href="#problem-statement">Problem statement</a></li>
+<li><a href="#analogues">Analogues</a></li>
 <li><a href="#differences-from-the-basic-technical-task">Differences from the basic technical task</a></li>
 <li><a href="#how-to-play">How to play</a></li>
 <li><a href="#documentation">Documentation</a></li>
@@ -508,14 +510,32 @@ blockquote {
 </li>
 </ul>
 <hr>
+<h1 id="problem-statement">Problem statement</h1>
+<p><em>soon</em></p>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h1 id="analogues">Analogues</h1>
+<p>We have found 3 interesting versions of &quot;Conway game of life&quot; in the Internet</p>
+<ol>
+<li><a href="https://github.com/AlessandroFare/Game-of-Life-Logisim">Version is full madden in Logisim with toroidal field <code>16</code>*<code>16</code>.</a> Works fast but small field doesn't allow construct a lot of setups. For example <a href="https://conwaylife.com/wiki/Pulsar">&quot;Pulsar&quot;</a> or <a href="https://playgameoflife.com/lexicon/copperhead">&quot;Copperhead&quot;</a>:</li>
+<li><a href="https://conwaylife.com/">Web version</a> - fast and convenient. Has endless field. Alas, we do not have similar capacities</li>
+<li>In <a href="https://www.youtube.com/watch?v=FiO6jkNkrb4">this video</a> you can see Turing machine, 1D and 3D version, CPU-like version and so on.</li>
+</ol>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
 <h1 id="differences-from-the-basic-technical-task">Differences from the basic technical task</h1>
-<p>We have made 2 powerful improvements and 1 concept change from the basic technical task.</p>
+<p>We have made 2 powerful improvements and 2 concept changes from the basic technical task.</p>
 <p><strong>Improvements:</strong></p>
 <ol>
 <li>We have composed a toroidal cycled field with size <code>32*32</code></li>
 <li>We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from <code>1</code> to <code>8</code>.</li>
 </ol>
-<p><strong>Concept change</strong> - we have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.</p>
+<p><strong>Concept changes:</strong></p>
+<ol>
+<li>We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.</li>
+<li>Video buffer (named <a href="#random-write-buffer">random write buffer</a>) has been made asynchronous. Besides, we have add <code>clear</code> input to it.</li>
+</ol>
+<p><strong>Other components wasn't mentioned in basic technical project</strong></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <hr>
 <h1 id="how-to-play">How to play</h1>
@@ -568,7 +588,7 @@ blockquote {
 </table>
 <p><code>NUM 5</code> / <code>Space</code> - change state of selected cell</p>
 <ol start="3">
-<li>When you have set initial field state press button &quot;Simulation switch&quot; and observe evolution!</li>
+<li>When you have set initial field state press button &quot;Simulation switch&quot; and observe evolution! <strong>You can stop simulation and edit field at any time. But if CPU cursor has processed some cells you would get half-counted generation</strong></li>
 </ol>
 <img width="80%" src="./how-to-play.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>

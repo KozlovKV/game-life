@@ -43,6 +43,8 @@
 
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [Problem statement](#problem-statement)
+- [Analogues](#analogues)
 - [Differences from the basic technical task](#differences-from-the-basic-technical-task)
 - [How to play](#how-to-play)
 - [Documentation](#documentation)
@@ -86,14 +88,36 @@
 
 ---
 
+# Problem statement
+*soon*
+
+*[Back to table of contents](#table-of-contents)*
+
+---
+
+# Analogues
+We have found 3 interesting versions of "Conway game of life" in the Internet
+
+1. [Version is full madden in Logisim with toroidal field `16`*`16`.](https://github.com/AlessandroFare/Game-of-Life-Logisim) Works fast but small field doesn't allow construct a lot of setups. For example ["Pulsar"](https://conwaylife.com/wiki/Pulsar) or ["Copperhead"](https://playgameoflife.com/lexicon/copperhead):
+2. [Web version](https://conwaylife.com/) - fast and convenient. Has endless field. Alas, we do not have similar capacities
+3. In [this video](https://www.youtube.com/watch?v=FiO6jkNkrb4) you can see Turing machine, 1D and 3D version, CPU-like version and so on.
+
+*[Back to table of contents](#table-of-contents)*
+
+---
+
 # Differences from the basic technical task
-We have made 2 powerful improvements and 1 concept change from the basic technical task.
+We have made 2 powerful improvements and 2 concept changes from the basic technical task.
 
 **Improvements:**
 1. We have composed a toroidal cycled field with size `32*32`
 2. We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from `1` to `8`.
 
-**Concept change** - we have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
+**Concept changes:**
+1. We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
+2. Video buffer (named [random write buffer](#random-write-buffer)) has been made asynchronous. Besides, we have add `clear` input to it.
+
+**Other components wasn't mentioned in basic technical project**
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -118,7 +142,7 @@ KEY           | DIRECTION    |
 
 `NUM 5` / `Space` - change state of selected cell
 
-3. When you have set initial field state press button "Simulation switch" and observe evolution!
+3. When you have set initial field state press button "Simulation switch" and observe evolution! **You can stop simulation and edit field at any time. But if CPU cursor has processed some cells you would get half-counted generation**
 
 <img width="80%" src="./how-to-play.png">
 
