@@ -87,7 +87,13 @@
 ---
 
 # Differences from the basic technical task
-*soon*
+We have made 2 powerful improvements and 1 concept change from the basic technical task.
+
+**Improvements:**
+1. We have composed a toroidal cycled field with size `32*32`
+2. We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from `1` to `8`.
+
+**Concept change** - we have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -96,22 +102,25 @@
 # How to play
 **Our version of "Conway game of life" works with universal sets of conditions for birth and survival.**
 
-<div class="columns">
-	<div width="55%">
-		<ol>
-			<li>
-				To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position <code>N</code> means that birth/survival will be fulfilled when cell has <code>N</code> neighbors.
-			</li>
-			<li>
-				After this click on keyboard element and use one of two [keyboard layouts](#keyboard-layouts) to move blinking cursor and change cells' states.
-			</li>
-			<li>
-				When you set initial field state press button "Simulation switch" and observe evolution!
-			</li>
-		</ol>
-	</div>
-	<img width="40%" src="./how-to-play.png">
-</div>
+1. To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position `N` means that birth/survival will be fulfilled when cell has `N` neighbors.
+2. After this click on keyboard element and use one of two keyboard layouts to move blinking cursor and change cells' states.
+
+KEY           | DIRECTION    |
+:-:           | :-:          |
+`NUM 1` / `Z` | bottom-left  |
+`NUM 2` / `S` | bottom       |
+`NUM 3` / `C` | bottom-right |
+`NUM 4` / `A` | left         |
+`NUM 6` / `D` | right        |
+`NUM 7` / `Q` | top-left     |
+`NUM 8` / `W` | top          |
+`NUM 9` / `E` | top-right    |
+
+`NUM 5` / `Space` - change state of selected cell
+
+3. When you have set initial field state press button "Simulation switch" and observe evolution!
+
+<img width="80%" src="./how-to-play.png">
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -149,7 +158,7 @@ ldi r0, constSample  # r0 sets to 8
 ldi r0, IOAddr
 st r0, r0
 ```
-**The reason for this action is [`PSEUDO WRITE`](#pseudo-write) mode for some I/O registers**
+**The reason for this action is [`PSEUDO WRITE` mode](#pseudo-write) for some I/O registers**
 
 ## RAM distribution
 - `0xe0` - birth's conditions first byte
@@ -566,14 +575,16 @@ Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [K
 Cursor moving:
 KEY           | DIRECTION    | X DELTA | Y DELTA
 :-:           | :-:          | :-:     | :-:
-`NUM 1` / `Z` | bottom-left  | `-1`    | `+1`
+`NUM 1` / `Z` | bottom-left  | `+1`    | `+1`
 `NUM 2` / `S` | bottom       | `0`     | `+1`
-`NUM 3` / `C` | bottom-right | `+1`    | `+1`
-`NUM 4` / `A` | left         | `-1`    | `0`
-`NUM 6` / `D` | right        | `+1`    | `0`
-`NUM 7` / `Q` | top-left     | `-1`    | `-1`
+`NUM 3` / `C` | bottom-right | `-1`    | `+1`
+`NUM 4` / `A` | left         | `+1`    | `0`
+`NUM 6` / `D` | right        | `-1`    | `0`
+`NUM 7` / `Q` | top-left     | `+1`    | `-1`
 `NUM 8` / `W` | top          | `0`     | `-1`
-`NUM 9` / `E` | top-right    | `+1`    | `-1`
+`NUM 9` / `E` | top-right    | `-1`    | `-1`
+
+**Deltas defined as shown above because in matrix top-left cell has `X = 31` and `Y = 0`**
 
 **Cursor position on matrix is marked by [blinker](#blinker)**
 

@@ -509,27 +509,68 @@ blockquote {
 </ul>
 <hr>
 <h1 id="differences-from-the-basic-technical-task">Differences from the basic technical task</h1>
-<p><em>soon</em></p>
+<p>We have made 2 powerful improvements and 1 concept change from the basic technical task.</p>
+<p><strong>Improvements:</strong></p>
+<ol>
+<li>We have composed a toroidal cycled field with size <code>32*32</code></li>
+<li>We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from <code>1</code> to <code>8</code>.</li>
+</ol>
+<p><strong>Concept change</strong> - we have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.</p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <hr>
 <h1 id="how-to-play">How to play</h1>
 <p><strong>Our version of &quot;Conway game of life&quot; works with universal sets of conditions for birth and survival.</strong></p>
-<div class="columns">
-	<div width="55%">
-		<ol>
-			<li>
-				To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position <code>N</code> means that birth/survival will be fulfilled when cell has <code>N</code> neighbors.
-			</li>
-			<li>
-				After this click on keyboard element and use one of two [keyboard layouts](#keyboard-layouts) to move blinking cursor and change cells' states.
-			</li>
-			<li>
-				When you set initial field state press button "Simulation switch" and observe evolution!
-			</li>
-		</ol>
-	</div>
-	<img width="40%" src="./how-to-play.png">
-</div>
+<ol>
+<li>To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position <code>N</code> means that birth/survival will be fulfilled when cell has <code>N</code> neighbors.</li>
+<li>After this click on keyboard element and use one of two keyboard layouts to move blinking cursor and change cells' states.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">KEY</th>
+<th style="text-align:center">DIRECTION</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
+<td style="text-align:center">bottom-left</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 2</code> / <code>S</code></td>
+<td style="text-align:center">bottom</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
+<td style="text-align:center">bottom-right</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
+<td style="text-align:center">left</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
+<td style="text-align:center">right</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 7</code> / <code>Q</code></td>
+<td style="text-align:center">top-left</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 8</code> / <code>W</code></td>
+<td style="text-align:center">top</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 9</code> / <code>E</code></td>
+<td style="text-align:center">top-right</td>
+</tr>
+</tbody>
+</table>
+<p><code>NUM 5</code> / <code>Space</code> - change state of selected cell</p>
+<ol start="3">
+<li>When you have set initial field state press button &quot;Simulation switch&quot; and observe evolution!</li>
+</ol>
+<img width="80%" src="./how-to-play.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <hr>
 <h1 id="documentation">Documentation</h1>
@@ -562,7 +603,7 @@ ldi r0, constSample  # r0 sets to 8
 <pre class='hljs'><code><div>ldi r0, IOAddr
 st r0, r0
 </div></code></pre>
-<p><strong>The reason for this action is <a href="#pseudo-write"><code>PSEUDO WRITE</code></a> mode for some I/O registers</strong></p>
+<p><strong>The reason for this action is <a href="#pseudo-write"><code>PSEUDO WRITE</code> mode</a> for some I/O registers</strong></p>
 <h2 id="ram-distribution">RAM distribution</h2>
 <ul>
 <li><code>0xe0</code> - birth's conditions first byte</li>
@@ -963,7 +1004,7 @@ rts
 <tr>
 <td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
 <td style="text-align:center">bottom-left</td>
-<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>+1</code></td>
 <td style="text-align:center"><code>+1</code></td>
 </tr>
 <tr>
@@ -975,25 +1016,25 @@ rts
 <tr>
 <td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
 <td style="text-align:center">bottom-right</td>
-<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>-1</code></td>
 <td style="text-align:center"><code>+1</code></td>
 </tr>
 <tr>
 <td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
 <td style="text-align:center">left</td>
-<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>+1</code></td>
 <td style="text-align:center"><code>0</code></td>
 </tr>
 <tr>
 <td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
 <td style="text-align:center">right</td>
-<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>-1</code></td>
 <td style="text-align:center"><code>0</code></td>
 </tr>
 <tr>
 <td style="text-align:center"><code>NUM 7</code> / <code>Q</code></td>
 <td style="text-align:center">top-left</td>
-<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>+1</code></td>
 <td style="text-align:center"><code>-1</code></td>
 </tr>
 <tr>
@@ -1005,11 +1046,12 @@ rts
 <tr>
 <td style="text-align:center"><code>NUM 9</code> / <code>E</code></td>
 <td style="text-align:center">top-right</td>
-<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>-1</code></td>
 <td style="text-align:center"><code>-1</code></td>
 </tr>
 </tbody>
 </table>
+<p><strong>Deltas defined as shown above because in matrix top-left cell has <code>X = 31</code> and <code>Y = 0</code></strong></p>
 <p><strong>Cursor position on matrix is marked by <a href="#blinker">blinker</a></strong></p>
 <p><code>NUM 5</code> / <code>Space</code> - change state of selected cell in <a href="#random-write-buffer">random write buffer</a> using <a href="#rows-bit-invertor">row's bit invertor</a></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
