@@ -1,9 +1,9 @@
-# [КАК ПОЛЬЗОВАТЬСЯ ГИТОМ ВМЕСТЕ С ГИТХАБОМ](./gitInstruction.md)
+# Logisim & CdM-8 Conway's game of life
 
-# Game "Life"
-Game "Life" for Digital platforms course in **Novosibirsk State University**. 
+Conway's game of life for Digital platforms course in **Novosibirsk State University**. 
 
 Created by *Kozlov Kirill* and *Palking Egor* (group `22215`) in 2023.
 
 ## [Documentation](./docs.md)
+[Web version](https://kozlovkv.github.io/game-life/)
 
