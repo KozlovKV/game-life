@@ -1,3 +1,46 @@
+<style>
+	body {
+		font-size: 16px;
+		padding: 40px;
+	}
+	h1 {
+		text-align: center;
+		font-size: 1.8rem;
+		margin-top: 5%;
+	}
+	h2, h3, h4 {
+		margin-top: 3%;
+	}
+	h2 {
+		font-size: 1.6rem;
+	}
+	h3 {
+		font-size: 1.4rem;
+	}
+	h4 {
+		font-size: 1.2rem;
+	}
+
+	img {
+		border: 1px solid black;
+	}
+	.columns {
+		margin-top: 10px;
+		margin-bottom: 10px;
+		display: flex;
+		justify-content: space-around;
+		align-items: flex-start;
+	}
+	:not(pre):not(.hljs) > code {
+		color: #A98E55;
+	}
+	@media print {
+		hr {
+			page-break-after: always;
+		}
+	}
+</style>
+
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Differences from the basic technical task](#differences-from-the-basic-technical-task)
@@ -41,53 +84,12 @@
 		- [Binary selector](#binary-selector)
 		- [Blinker](#blinker)
 
-<style>
-	body {
-		font-size: 16px;
-		padding: 50px;
-	}
-	h1 {
-		text-align: center;
-		font-size: 2rem;
-		margin-top: 7%;
-	}
-	h2, h3, h4 {
-		margin-top: 3%;
-	}
-	h2 {
-		font-size: 1.75rem;
-	}
-	h3 {
-		font-size: 1.5rem;
-	}
-	h4 {
-		font-size: 1.25rem;
-	}
-
-	img {
-		border: 1px solid black;
-	}
-	.columns {
-		margin-top: 10px;
-		margin-bottom: 10px;
-		display: flex;
-		justify-content: space-around;
-		align-items: flex-start;
-	}
-	:not(pre):not(.hljs) > code {
-		color: #A98E55;
-	}
-	@media print {
-		hr {
-			page-break-after: always;
-		}
-	}
-</style>
-
 ---
 
 # Differences from the basic technical task
 *soon*
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -111,6 +113,8 @@
 	<img width="40%" src="./how-to-play.png">
 </div>
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 # Documentation
@@ -118,9 +122,13 @@
 There are some special terms that are used in different places below:
 1. **Environment** is cell or cells' set with a border one cell wide on all sides. E.g.: 
    - for cell `(Y, X)` environment will be `[(Y-1, X-1), (Y-1, X), (Y-1, X+1), (Y, X-1), (Y, X), (Y, X+1), (Y+1, X-1), (Y+1, X), (Y+1, X+1)]` with **centre bit** bit `(Y, X)` (term **centre bit** is meaningful only for one cell's environment)
-   - environment for full row (`X in [0, 31]`) `Y` will be full rows `Y-1`, `Y` and `Y+1`
-2. **Environment sum** is a sum of environment border
+   - environment for full row (`all X in range [0, 31]`) `Y` will be full rows `Y-1`, `Y` and `Y+1`
+2. **Environment sum** is a sum of cells' values from environment border
 3. **Significant environment** is an environment which has at least one cell with value `1` (**including border cells**)
+
+*[Back to table of contents](#table-of-contents)*
+
+---
 
 # Assembler
 ## Short description
@@ -161,6 +169,8 @@ asect 0xe8
 deathConditionsRowStart:
 ```
 </details>
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -211,6 +221,8 @@ IOUpdateGeneration:
 
 </details>
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ## Code description
@@ -259,6 +271,8 @@ start:
 	jsr spreadByte
 ```
 </details>
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -373,6 +387,8 @@ br main
 
 </details>
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ### Subroutines
@@ -468,6 +484,8 @@ We decided that alive cell should die and death cell cannot birth. Due to specif
 ...
 ```
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 # Logisim
@@ -488,6 +506,8 @@ Here you can see main jobs for Logisim part and logical ordered references for a
    2. [Row's bit invertor](#rows-bit-invertor)
    3. [Random write buffer](#random-write-buffer)
    4. [Stable generation's buffer](#stable-generations-buffer)
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -516,6 +536,8 @@ Most of circuits work with coordinates `Y` (row index) and `X` (bit index) and c
 
 Therefore we use two multiplexers that choose coordinates source depending on simulation state:
 ![Coordinates bus](./engine-coordinates-bus.png)
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -553,9 +575,11 @@ KEY           | DIRECTION    | X DELTA | Y DELTA
 `NUM 8` / `W` | top          | `0`     | `-1`
 `NUM 9` / `E` | top-right    | `+1`    | `-1`
 
-**On matrix cursor is marked by [blinker](#blinker)**
+**Cursor position on matrix is marked by [blinker](#blinker)**
 
 `NUM 5` / `Space` - change state of selected cell in [random write buffer](#random-write-buffer) using [row's bit invertor](#rows-bit-invertor)
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -626,6 +650,8 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 
 ![I/O "registers" for changing field](./IO-change-signals.png)
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ## Elements description
@@ -645,7 +671,9 @@ Keyboard controller gives user signals that are used while simulation if off:
 - Y and X for [coordinates bus] 
 - Switch signal which is implemented as `Write row` in [random write buffer](#random-write-buffer)
 
-![Keyboard controller usage](./keyboard-controller-usage.png)
+<img width="80%" src="./keyboard-controller-usage.png">
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -676,6 +704,8 @@ Write row signal goes:
 
 ![Usage in Engine](./RWB-usage.png)
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 <span id="stable-generations-buffer"></span>
@@ -693,6 +723,8 @@ Buffer update depends on simulation state:
 - While simulation is on buffer is updated after [CdM-8 main cycle's full execution](#main-cycle) by signal from [pseudo I/O register](#io-registers-for-changing-field)
 
 <img width="66%" src="./SGB-usage.png">
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -727,13 +759,15 @@ It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this ste
 ![Screen 2](./env-constructor-circuit-2.png)
 
 **Usage in Engine circuit:**
-Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU with stable generation.
+Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU works with stable generation.
 
 All outputs go through tunnels to [I/O registers](#io-registers-with-environment-data) that are used in [ASM main cycle](#main-cycle)
 
 Y and X go from [coordinates bus](#coordinates-bus) but while simulation is off environment data isn't used.
 
 <img width="66%" src="./env-constructor-usage.png">
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -756,6 +790,8 @@ Y and X go from [coordinates bus](#coordinates-bus)
 
 <img width="66%" src="./RBI-usage.png">
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ### Binary selector
@@ -768,13 +804,15 @@ Inputs:
 Outputs:
 - selected value: 1 32-bit row
 
-**Circuit screenshot and its usage in Engine:**
+**Circuit screenshot and its usage:**
 Binary selector is used in [blinker](#blinker) for convenient circuit composing.
 
 <div class="columns">
 	<img width="45%" src="./binary_selector1.png">
 	<img width="45%" src="./binary_selector2.png">
 </div>
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -801,3 +839,5 @@ Outputs:
 In `switch` handles clock signal. Y and X go from [coordinates bus](#coordinates-bus)
 
 <img width="50%" src="./blinker3.png">
+
+*[Back to table of contents](#table-of-contents)*
