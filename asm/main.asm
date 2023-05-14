@@ -147,10 +147,12 @@ main:
 		ldi r0, IOX
 		st r0, r1
 
+		# Get the first X with significant env.
 		ldi r3, IONextSignificantX
 		ld r3, r2
 
 		do 
+			# Save currnt X
 			move r2, r1
 			push r1
 
@@ -179,8 +181,11 @@ main:
 				fi
 			fi
 
+			# Get the next X with significant env. lower than current
 			pop r1
 			ld r3, r2
+
+			# If new X greater of equal => cycle ends
 			cmp r2, r1 
 		until ge
 		rowProcessed:
