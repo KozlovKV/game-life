@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>_docs.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+	font-size: 14px;
+	padding: 0 12px;
+	line-height: 22px;
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	color: #4080D0;
+	text-decoration: none;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+	font-size: inherit;
+	line-height: auto;
+}
+
+a:hover {
+	color: #4080D0;
+	text-decoration: underline;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left: 5px solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 14px;
+	line-height: 19px;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+.mac code {
+	font-size: 12px;
+	line-height: 18px;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+/** Theming */
+
+.vscode-light,
+.vscode-light pre code {
+	color: rgb(30, 30, 30);
+}
+
+.vscode-dark,
+.vscode-dark pre code {
+	color: #DDD;
+}
+
+.vscode-high-contrast,
+.vscode-high-contrast pre code {
+	color: white;
+}
+
+.vscode-light code {
+	color: #A31515;
+}
+
+.vscode-dark code {
+	color: #D7BA7D;
+}
+
+.vscode-light pre:not(.hljs),
+.vscode-light code > div {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre:not(.hljs),
+.vscode-dark code > div {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre:not(.hljs),
+.vscode-high-contrast code > div {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-light blockquote,
+.vscode-dark blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.vscode-high-contrast blockquote {
+	background: transparent;
+	border-color: #fff;
+}
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+</head>
+<body>
+<style>
+	body {
+		font-size: 16px;
+		padding: 40px;
+	}
+	h1 {
+		text-align: center;
+		font-size: 1.8rem;
+		margin-top: 5%;
+	}
+	h2, h3, h4 {
+		margin-top: 3%;
+	}
+	h2 {
+		font-size: 1.6rem;
+	}
+	h3 {
+		font-size: 1.4rem;
+	}
+	h4 {
+		font-size: 1.2rem;
+	}
+
+	img {
+		border: 1px solid black;
+	}
+	.columns {
+		margin-top: 10px;
+		margin-bottom: 10px;
+		display: flex;
+		justify-content: space-around;
+		align-items: flex-start;
+	}
+	:not(pre):not(.hljs) > code {
+		color: #A98E55;
+	}
+	@media print {
+		hr {
+			page-break-after: always;
+		}
+	}
+</style>
+<h1 id="table-of-contents">Table of contents</h1>
+<ul>
+<li><a href="#table-of-contents">Table of contents</a></li>
+<li><a href="#differences-from-the-basic-technical-task">Differences from the basic technical task</a></li>
+<li><a href="#how-to-play">How to play</a></li>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#special-terms">Special terms</a></li>
+<li><a href="#assembler">Assembler</a>
+<ul>
+<li><a href="#short-description">Short description</a></li>
+<li><a href="#ram-distribution">RAM distribution</a>
+<ul>
+<li><a href="#cells-referring-to-io-regs">Cells referring to I/O regs.</a></li>
+</ul>
+</li>
+<li><a href="#code-description">Code description</a>
+<ul>
+<li><a href="#simulation-start">Simulation start</a></li>
+<li><a href="#main-cycle">Main cycle</a></li>
+<li><a href="#subroutines">Subroutines</a>
+<ul>
+<li><a href="#spreadbyte"><code>spreadByte</code></a></li>
+<li><a href="#processbit"><code>processBit</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#logisim">Logisim</a>
+<ul>
+<li><a href="#main-concept">Main concept</a></li>
+<li><a href="#engine-circuit">Engine circuit</a>
+<ul>
+<li><a href="#coordinates-bus">Coordinates bus</a></li>
+</ul>
+</li>
+<li><a href="#controls">Controls</a>
+<ul>
+<li><a href="#main-signals">Main signals</a></li>
+<li><a href="#keyboard">Keyboard</a>
+<ul>
+<li><a href="#keyboard-layouts">Keyboard layouts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#io-registers">I/O registers</a>
+<ul>
+<li><a href="#io-registers-types">I/O registers' types</a>
+<ul>
+<li><a href="#pseudo-write"><code>PSEUDO WRITE</code></a></li>
+</ul>
+</li>
+<li><a href="#short-description-table">Short description table</a></li>
+<li><a href="#list-with-descriptions">List with descriptions</a>
+<ul>
+<li><a href="#simulation-rules">Simulation rules</a></li>
+<li><a href="#processed-cell">Processed cell</a></li>
+<li><a href="#io-registers-with-environment-data">I/O &quot;registers&quot; with environment data</a></li>
+<li><a href="#io-registers-for-changing-field">I/O &quot;registers&quot; for changing field</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#elements-description">Elements description</a>
+<ul>
+<li><a href="#keyboard-controller">Keyboard controller</a></li>
+<li><a href="#random-write-buffer">Random write buffer</a></li>
+<li><a href="#stable-generations-buffer">Stable generation's buffer</a></li>
+<li><a href="#row-environment-mask">Row environment mask</a></li>
+<li><a href="#environment-data-constructor">Environment data constructor</a></li>
+<li><a href="#rows-bit-invertor">Row's bit invertor</a></li>
+<li><a href="#binary-selector">Binary selector</a></li>
+<li><a href="#blinker">Blinker</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h1 id="differences-from-the-basic-technical-task">Differences from the basic technical task</h1>
+<p><em>soon</em></p>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h1 id="how-to-play">How to play</h1>
+<p><strong>Our version of &quot;Conway game of life&quot; works with universal sets of conditions for birth and survival.</strong></p>
+<div class="columns">
+	<div width="55%">
+		<ol>
+			<li>
+				To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position <code>N</code> means that birth/survival will be fulfilled when cell has <code>N</code> neighbors.
+			</li>
+			<li>
+				After this click on keyboard element and use one of two [keyboard layouts](#keyboard-layouts) to move blinking cursor and change cells' states.
+			</li>
+			<li>
+				When you set initial field state press button "Simulation switch" and observe evolution!
+			</li>
+		</ol>
+	</div>
+	<img width="40%" src="./how-to-play.png">
+</div>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h1 id="documentation">Documentation</h1>
+<h1 id="special-terms">Special terms</h1>
+<p>There are some special terms that are used in different places below:</p>
+<ol>
+<li><strong>Environment</strong> is cell or cells' set with a border one cell wide on all sides. E.g.:
+<ul>
+<li>for cell <code>(Y, X)</code> environment will be <code>[(Y-1, X-1), (Y-1, X), (Y-1, X+1), (Y, X-1), (Y, X), (Y, X+1), (Y+1, X-1), (Y+1, X), (Y+1, X+1)]</code> with <strong>centre bit</strong> bit <code>(Y, X)</code> (term <strong>centre bit</strong> is meaningful only for one cell's environment)</li>
+<li>environment for full row (<code>all X in range [0, 31]</code>) <code>Y</code> will be full rows <code>Y-1</code>, <code>Y</code> and <code>Y+1</code></li>
+</ul>
+</li>
+<li><strong>Environment sum</strong> is a sum of cells' values from environment border</li>
+<li><strong>Significant environment</strong> is an environment which has at least one cell with value <code>1</code> (<strong>including border cells</strong>)</li>
+</ol>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h1 id="assembler">Assembler</h1>
+<h2 id="short-description">Short description</h2>
+<p>Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation]</p>
+<p><strong>In ASM code we use <code>asect</code> constants like this:</strong></p>
+<pre class='hljs'><code><div>asect 8
+constSample:
+
+# ...
+
+ldi r0, constSample  # r0 sets to 8 
+</div></code></pre>
+<p><strong>Often we save address value to its address:</strong></p>
+<pre class='hljs'><code><div>ldi r0, IOAddr
+st r0, r0
+</div></code></pre>
+<p><strong>The reason for this action is <a href="#pseudo-write"><code>PSEUDO WRITE</code></a> mode for some I/O registers</strong></p>
+<h2 id="ram-distribution">RAM distribution</h2>
+<ul>
+<li><code>0xe0</code> - birth's conditions first byte</li>
+<li><code>0xe8</code> - death's conditions first byte</li>
+</ul>
+<p><strong>Stack initial position - <code>0xe0</code></strong></p>
+<details open>
+<summary>Constants for this cells</summary>
+<pre class='hljs'><code><div># Internal data addresses
+asect 0xe0
+birthConditionsRowStart:
+
+asect 0xe8
+deathConditionsRowStart:
+</div></code></pre>
+</details>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="cells-referring-to-io-regs">Cells referring to I/O regs.</h3>
+<p>Cells from <code>0xf0</code> to <code>0xff</code> are allocated for I/O registers.</p>
+<p><strong>See detailed description in <a href="#short-description-table">Logisim topic</a></strong></p>
+<details>
+<summary>Constants for I/O cells</summary>
+<br>
+<pre class='hljs'><code><div># Asects for I/O registers
+asect 0xf0
+IOGameMode:
+
+asect 0xf1
+IOBirthConditions:
+
+asect 0xf2
+IODeathConditions:
+
+asect 0xf3
+IOY:
+
+asect 0xf4
+IOX:
+
+asect 0xf5
+IOBit:
+
+asect 0xf6
+IOEnvSum:
+
+asect 0xf7
+IONullRowsEnv:
+
+asect 0xf8
+IONextSignificantX:
+
+asect 0xf9
+IOInvertBitSignal:
+
+asect 0xfa
+IOUpdateGeneration:
+</div></code></pre>
+</details>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h2 id="code-description">Code description</h2>
+<h3 id="simulation-start">Simulation start</h3>
+<p>This part just waits whilst user presses start button and after it loads game conditions to RAM using <a href="#spreadbyte">spreadByte subroutine</a></p>
+<p><strong>For optimized conditions checking survival conditions <a href="#simulation-rules">inverts to death's conditions</a>. <a href="#processbit">See how it works here</a></strong></p>
+<details>
+<summary>Code</summary>
+<br>
+<pre class='hljs'><code><div>asect 0
+br start
+
+#==============================#
+#     Place for subroutines    #
+#==============================#
+...
+#===============================
+
+start:
+	# Move SP before I/O and field addresses
+	setsp 0xd0
+
+
+	# Waiting for IOGameMode I/O reg. != 0
+	ldi r1, IOGameMode
+	do 
+		ld r1, r0
+		tst r0
+	until nz
+
+	ldi r1, gameMode
+	st r1, r0
+
+	# Read birth and death conditions from I/O regs.
+	ldi r1, IOBirthConditions
+	ld r1, r0
+	ldi r1, birthConditionsRowStart
+	jsr spreadByte
+	ldi r1, IODeathConditions
+	ld r1, r0
+	ldi r1, deathConditionsRowStart
+	jsr spreadByte
+</div></code></pre>
+</details>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="main-cycle">Main cycle</h3>
+<p>This part will repeats while simulations stays on.</p>
+<p>Before cycle we update stable generation's buffer using save signal to <code>IOUpdateGeneration</code> <a href="#io-registers-for-changing-field">referred to Logisim</a>. As a result, we can get correct data for processing cells.</p>
+<p>Main cycle iterates by <code>Y</code> (row index) in decreasing order <code>[31, 0]</code>.</p>
+<p>We use two optimizations for skipping meaningless iterations:</p>
+<ol>
+<li>If rows <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> (rows environment) are null (flag from <code>IONullRowsEnv</code> referred to <a href="#io-registers-with-environment-data">I/O register</a> will be <code>1</code>) $\rArr$ we decrement <code>Y</code>.</li>
+<li>If rows environment isn't null we iterates by <code>X</code> with significant environment (surrounding sum &gt; 0 or centre bit = 1) which are received from <a href="#io-registers-with-environment-data"><code>IONextSignificantX</code> I/O register</a>. When new received <code>X</code> &gt;= current <code>X</code> we end cycle for this row</li>
+</ol>
+<p>For every significant <code>(Y, X)</code> combination we get state of selected cell and its environment's sum using <code>IOBit</code> and <code>IOEnvSum</code> addresses which are referred to <a href="#io-registers-with-environment-data">I/O registers</a></p>
+<p>For zero sum:</p>
+<ul>
+<li>Alive cell is killed immediately using save signal <code>IOInvertBitSignal</code> <a href="#io-registers-for-changing-field">referred to Logisim</a></li>
+<li>Empty cell is skipped</li>
+</ul>
+<p>For non-zero sum we call subroutine <a href="#processbit"><code>processBit</code></a></p>
+<details>
+<summary>Code</summary>
+<pre class='hljs'><code><div>main:
+	
+	# Update stable generation's buffer to get new data from env. data constructor
+	ldi r0, IOUpdateGeneration
+	st r0, r0
+	
+	# Count new cells' states
+	ldi r3, 31 # row iterator
+	do
+		# If game mode = 0 we interrupt cycle and go to start code part
+		# NEW GENERATION CAN BE COUNTED PARTITIONALLY 
+		ldi r0, IOGameMode
+		ld r0, r0
+		tst r0
+		bz start
+
+		push r3 # Save row iterator
+
+		# Send Y to logisim
+		ldi r0, IOY
+		st r0, r3
+
+		# If all rows in env. are null =&gt; skip this row
+		ldi r3, IONullRowsEnv
+		ld r3, r3
+		tst r3
+		bnz rowProcessed
+
+		ldi r1, 0 # Value for searching first significant X
+
+		# Send X to Logisim
+		ldi r0, IOX
+		st r0, r1
+
+		# Get the first X with significant env.
+		ldi r3, IONextSignificantX
+		ld r3, r2
+
+		do 
+			# Save currnt X
+			move r2, r1
+			push r1
+
+			# Send X to Logisim
+			ldi r0, IOX
+			st r0, r1
+
+			# Read data for this cell
+			ldi r0, IOEnvSum
+			ld r0, r0
+			ldi r1, IOBit
+			ld r1, r1
+
+			# Check birth or death conditions and save bit depends on conditions
+			if
+				tst r0
+			is nz
+				jsr processBit
+			else
+				# If sum = 0 alive cell must die
+				if 
+					tst r1
+				is nz
+					ldi r0, IOInvertBitSignal
+					st r0, r0
+				fi
+			fi
+
+			# Get the next X with significant env. lower than current
+			pop r1
+			ld r3, r2
+
+			# If new X greater of equal =&gt; cycle ends
+			cmp r2, r1 
+		until ge
+		rowProcessed:
+
+		# Get and decrement row iterator
+		pop r3
+		dec r3
+	until mi
+# Infinite simulation cycle
+br main
+</div></code></pre>
+</details>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="subroutines">Subroutines</h3>
+<h4 id="spreadbyte"><code>spreadByte</code></h4>
+<ul>
+<li>This subroutine spread byte from <code>r0</code> into cells from <code>r1</code> to <code>r1 + 7</code>. In other words <code>spreadByte</code> writes every bit of byte from <code>r0</code>
+to cells from <code>r1</code> to <code>r1 + 7</code>, writing the low order bit into <code>r1</code> and the high oreder bit into <code>r1 + 7</code>.</li>
+<li><code>spreadByte</code> is used to write game settings to the memory.</li>
+<li>Thanks to <code>spreadByte</code> we can easily decide what we should do with current cell without using loops.</li>
+</ul>
+<details>
+<summary>Code</summary>
+<br>
+<pre class='hljs'><code><div>spreadByte:
+	# Iterator
+	ldi r3, 0b00001000 # 8
+	while
+		tst r3
+	is nz
+		# The process of spreading byte
+		# Get lower bit and save to current cell
+		ldi r2, 0b00000001
+		and r0, r2
+		st r1, r2
+
+		# Increment cell address, shift data byte and decrement iterator
+		inc r1
+		shra r0
+		dec r3
+	wend
+rts	
+</div></code></pre>
+</details>
+<h4 id="processbit"><code>processBit</code></h4>
+<ul>
+<li>This subroutine gets neighbors' sum in <code>r0</code> and centre bit value in <code>r1</code>.</li>
+<li>Depending on bit value it chooses birth or death conditions</li>
+<li>Thanks to <a href="#spreadbyte">spreaded conditions</a> we can simply add to conditions' begin address value <code>r0 - 1</code> and check data by new address</li>
+<li>If there is 1 we should change value in selected cell so <a href="#io-registers-for-changing-field">we send this signal to Logisim</a></li>
+</ul>
+<details>
+<summary>Code</summary>
+<br>
+<pre class='hljs'><code><div>processBit:
+	# r0 - sum
+	# r1 - bit
+	# Send save signal to PSEUDO reg. IOInvertBitSignal if bit should be inverted (we count that IOX and IOY regs. contain correct coords.)
+	if
+		tst r1
+	is z
+		ldi r2, birthConditionsRowStart
+	else
+		ldi r2, deathConditionsRowStart
+	fi
+	# Check bit in spreaded space
+	dec r0
+	add r0, r2
+	ld r2, r2
+	# If there is 1 than we switch bit
+	if
+		tst r2
+	is nz
+		ldi r0, IOInvertBitSignal
+		st r0, r0
+	fi
+rts
+</div></code></pre>
+</details>
+<p><em>What to do if there is no neighbors?</em></p>
+<p>We decided that alive cell should die and death cell cannot birth. Due to specific work with <code>sum = 0</code> this case for <code>bit = 1</code> is processed in <a href="#main-cycle">main part</a>:</p>
+<pre class='hljs'><code><div>...
+	# Check birth or death conditions and save bit depends on conditions
+	if
+		tst r0
+	is nz
+		jsr processBit
+	else
+		# If sum = 0 alive cell must die
+		if 
+			tst r1
+		is nz
+			ldi r0, IOInvertBitSignal
+			st r0, r0
+		fi
+	fi
+...
+</div></code></pre>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h1 id="logisim">Logisim</h1>
+<h2 id="main-concept">Main concept</h2>
+<p>Here you can see main jobs for Logisim part and logical ordered references for all of them:</p>
+<ol>
+<li>Communication with user
+<ol>
+<li><a href="#controls">Controls</a></li>
+<li><a href="#how-to-play">Game screen</a></li>
+<li><a href="#blinker">Blinker</a> for pretty cursor visualization</li>
+</ol>
+</li>
+<li>Storing game's data
+<ol>
+<li><a href="#random-write-buffer">Random write buffer</a></li>
+<li><a href="#stable-generations-buffer">Stable generation's buffer</a></li>
+</ol>
+</li>
+<li>Constructing data for CPU
+<ol>
+<li>Used I/O registers: <a href="#processed-cell">cell</a> and <a href="#io-registers-with-environment-data">environment data</a></li>
+<li><a href="#environment-data-constructor">Environment data constructor</a></li>
+</ol>
+</li>
+<li>Creating new generation by CPU signals
+<ol>
+<li>Used I/O registers: <a href="#processed-cell">cell</a> and <a href="#io-registers-for-changing-field">signals</a></li>
+<li><a href="#rows-bit-invertor">Row's bit invertor</a></li>
+<li><a href="#random-write-buffer">Random write buffer</a></li>
+<li><a href="#stable-generations-buffer">Stable generation's buffer</a></li>
+</ol>
+</li>
+</ol>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h2 id="engine-circuit">Engine circuit</h2>
+<p><img src="./main.png" alt="Engine usage"></p>
+<p>This circuit is main one element of game. It handles <a href="#main-signals">all inputs from user</a> and gives finally 32 32-bit rows to matrix and outputs <code>simulation on</code> and <code>selected cell's state</code>.</p>
+<div class="columns">
+	<img width="58%" src="./engine-inputs-outputs.png">
+	<img width="40%" src="./engine-outputs-2.png">
+</div>
+<p>This circuit contains:</p>
+<ol>
+<li>Most of all circuits below with connected to them <a href="#coordinates-bus">coordinates bus</a> (<em>excepting <a href="#binary-selector">binary selector</a> and <a href="#row-environment-mask">row environment mask</a></em>):
+<ul>
+<li><img src="./engine-subcircuits.png" alt="Subcircuits in engine"></li>
+</ul>
+</li>
+<li>CdM-8 integration scheme with Harvard architecture:
+<ul>
+<li>
+<img width="70%" src="./engine-cdm8-integration.png">
+</li>
+</ul>
+</li>
+<li>All <a href="#io-registers">I/O registers</a>:
+<ul>
+<li>
+<img width="70%" src="./engine-io-regs.png">
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="coordinates-bus">Coordinates bus</h3>
+<p>Most of circuits work with coordinates <code>Y</code> (row index) and <code>X</code> (bit index) and coordinates go from 2 sources:</p>
+<ul>
+<li>When simulation off they go from <a href="#keyboard-controller">keyboard controller</a> which handles <a href="#controls">user's inputs</a></li>
+<li>When simulation on they go from <a href="#processed-cell">2 I/O registers</a></li>
+</ul>
+<p>Therefore we use two multiplexers that choose coordinates source depending on simulation state:
+<img src="./engine-coordinates-bus.png" alt="Coordinates bus"></p>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h2 id="controls">Controls</h2>
+<h3 id="main-signals">Main signals</h3>
+<img width="66%" src="./main.png">
+<p>Simulations switch button switches between simulation and setting modes. <strong>When we turn from simulation to setting mode we can get unfinished new generation</strong></p>
+<p>Two 8-bit inputs let us set different conditions for birth and survival. Bit value <code>1</code> on position <code>N</code> means fulfilling of conditions when cell has <code>N</code> neighbors so this inputs represent bit arrays.</p>
+<p>Clear button clears all field when simulation is off.</p>
+<p>Keyboard Logisim circuit sends keys' ASCII codes to engine. See more below.</p>
+<p>On bottom-right side we can see two LED indicators:</p>
+<ol>
+<li>State of cell under the blinking cursor</li>
+<li>Simulation state (when simulation is on indicator will light)</li>
+</ol>
+<h3 id="keyboard">Keyboard</h3>
+<p>Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to <a href="#keyboard-controller">Keyboard controller</a> inside engine circuit</p>
+<p><strong>All keys are working only while we are in the <code>setting</code> game mode</strong></p>
+<h4 id="keyboard-layouts">Keyboard layouts</h4>
+<p>Cursor moving:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">KEY</th>
+<th style="text-align:center">DIRECTION</th>
+<th style="text-align:center">X DELTA</th>
+<th style="text-align:center">Y DELTA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
+<td style="text-align:center">bottom-left</td>
+<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>+1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 2</code> / <code>S</code></td>
+<td style="text-align:center">bottom</td>
+<td style="text-align:center"><code>0</code></td>
+<td style="text-align:center"><code>+1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
+<td style="text-align:center">bottom-right</td>
+<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>+1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
+<td style="text-align:center">left</td>
+<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>0</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
+<td style="text-align:center">right</td>
+<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>0</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 7</code> / <code>Q</code></td>
+<td style="text-align:center">top-left</td>
+<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 8</code> / <code>W</code></td>
+<td style="text-align:center">top</td>
+<td style="text-align:center"><code>0</code></td>
+<td style="text-align:center"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 9</code> / <code>E</code></td>
+<td style="text-align:center">top-right</td>
+<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>-1</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cursor position on matrix is marked by <a href="#blinker">blinker</a></strong></p>
+<p><code>NUM 5</code> / <code>Space</code> - change state of selected cell in <a href="#random-write-buffer">random write buffer</a> using <a href="#rows-bit-invertor">row's bit invertor</a></p>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h2 id="io-registers">I/O registers</h2>
+<p>I/O bus have minor changes: selection of I/O addresses from CPU <code>addr</code> is detected by <code>less than</code> comparator's output with the second input <code>0xf0</code> (the first I/O cell address)</p>
+<p><img src="./IO-bus.png" alt="I/O bus"></p>
+<p><span id="io-registers-types"></span></p>
+<h3 id="io-registers'-types">I/O registers' types</h3>
+<p><strong>All types' names are regarding the CPU directions</strong></p>
+<p>Registers have trivial types of data direction: <code>READ ONLY</code> and <code>WRITE ONLY</code>.</p>
+<h4 id="pseudo-write"><code>PSEUDO WRITE</code></h4>
+<p>Besides these types we use one specific type - <code>PSEUDO WRITE</code>. CPU cannot write data to this &quot;registers&quot;. Main goal for this type is handle <code>write</code> signal by CdM-8's <code>st</code> instruction.</p>
+<h3 id="short-description-table">Short description table</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">CELL ADDR.</th>
+<th style="text-align:left">ASSEMBLER LABEL</th>
+<th style="text-align:left">DATA DIRECTION</th>
+<th style="text-align:center">EXPLANATION TOPIC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>0xf0</code></td>
+<td style="text-align:left"><code>IOGameMode</code></td>
+<td style="text-align:left"><code>READ ONLY</code>      <td rowspan="3"><a href="#simulation-rules">Link</a></td></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf1</code></td>
+<td style="text-align:left"><code>IOBirthConditions</code></td>
+<td style="text-align:left"><code>READ ONLY</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf2</code></td>
+<td style="text-align:left"><code>IODeathConditions</code></td>
+<td style="text-align:left"><code>READ ONLY</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf3</code></td>
+<td style="text-align:left"><code>IOY</code></td>
+<td style="text-align:left"><code>WRITE ONLY</code>     <td rowspan="2"><a href="#processed-cell">Link</a></td></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf4</code></td>
+<td style="text-align:left"><code>IOX</code></td>
+<td style="text-align:left"><code>WRITE ONLY</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf5</code></td>
+<td style="text-align:left"><code>IOBit</code></td>
+<td style="text-align:left"><code>READ ONLY</code>      <td rowspan="4"><a href="#io-registers-with-environment-data">Link</a></td></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf6</code></td>
+<td style="text-align:left"><code>IOEnvSum</code></td>
+<td style="text-align:left"><code>READ ONLY</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf7</code></td>
+<td style="text-align:left"><code>IONullRowsEnv</code></td>
+<td style="text-align:left"><code>READ ONLY</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf8</code></td>
+<td style="text-align:left"><code>IONextSignificantX</code></td>
+<td style="text-align:left"><code>READ ONLY</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xf9</code></td>
+<td style="text-align:left"><code>IOInvertBitSignal</code></td>
+<td style="text-align:left"><code>PSEUDO WRITE</code>   <td rowspan="2"><a href="#io-registers-for-changing-field">Link</a></td></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>0xfa</code></td>
+<td style="text-align:left"><code>IOUpdateGeneration</code></td>
+<td style="text-align:left"><code>PSEUDO WRITE</code></td>
+<td style="text-align:center"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="list-with-descriptions">List with descriptions</h3>
+<h4 id="simulation-rules">Simulation rules</h4>
+<ul>
+<li><code>0xf0</code> - READ ONLY - when simulation off this register will be <code>0</code>.
+<ul>
+<li>Trigger signal on this register will invert its value</li>
+<li>Tunnels from this register are used for control data origins on coordinates bus and some other cases.</li>
+</ul>
+</li>
+<li><code>0xf1</code> - READ ONLY - birth conditions as bit array</li>
+<li><code>0xf2</code> - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input</li>
+</ul>
+<p><img src="./IO-rules.png" alt="Simulation rules"></p>
+<h4 id="processed-cell">Processed cell</h4>
+<p>Coordinates from these registers are used in all Logisim components to tell what cell CPU is processing. When simulation on they capture coordinates bus:</p>
+<ul>
+<li><code>0xf3</code> - WRITE ONLY - Y coordinate (processing row)</li>
+<li><code>0xf4</code> - WRITE ONLY - X coordinate (bit index in row)</li>
+</ul>
+<p><img src="./IO-coords.png" alt="Coordinates registers"></p>
+<h4 id="io-registers-with-environment-data">I/O &quot;registers&quot; with environment data</h4>
+<p>These &quot;registers&quot; aren't exist. There are just tunnels which are connected to <a href="#environment-data-constructor">environment constructor outputs</a>:</p>
+<ul>
+<li><code>0xf5</code> - READ ONLY - 1 when bit on position <code>(Y, X)</code> is 1</li>
+<li><code>0xf6</code> - READ ONLY - sum of bits around cell <code>(Y, X)</code></li>
+<li><code>0xf7</code> - READ ONLY - 1 when rows <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> are null</li>
+<li><code>0xf8</code> - READ ONLY - next <code>X</code> which satisfy some of conditions:
+<ul>
+<li>Cell <code>(Y, X)</code> isn't <code>0</code></li>
+<li>sum of bits around cell <code>(Y, X)</code> greater than <code>0</code></li>
+</ul>
+</li>
+</ul>
+<p><img src="./IO-env-1.png" alt="I/O &quot;registers&quot; with environment data 1">
+<img src="./IO-env-2.png" alt="I/O &quot;registers&quot; with environment data 2"></p>
+<h4 id="io-registers-for-changing-field">I/O &quot;registers&quot; for changing field</h4>
+<ul>
+<li><code>0xf9</code> - PSEUDO WRITE - save signal to this cell will trigger <a href="#random-write-buffer">random write buffer</a> and change cell <code>(Y, X)</code> using <a href="#rows-bit-invertor">row's bit invertor</a></li>
+<li><code>0xfa</code> - PSEUDO WRITE - save signal to this cell will update <a href="#stable-generations-buffer">generation buffer</a></li>
+</ul>
+<p><img src="./IO-change-signals.png" alt="I/O &quot;registers&quot; for changing field"></p>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h2 id="elements-description">Elements description</h2>
+<h3 id="keyboard-controller">Keyboard controller</h3>
+<p>This circuit considers 7-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:</p>
+<ul>
+<li>Cycled increment/decrement X/Y of cursor</li>
+<li>Send switch signal for switching the cell's state</li>
+</ul>
+<p>See keyboard layouts <a href="#keyboard-layouts">here</a></p>
+<p><strong>Circuit screenshot:</strong></p>
+<p><img src="./keyboard-controller-circuit.png" alt="Keyboard controller circuit"></p>
+<p><strong>Usage in Engine circuit:</strong>
+Keyboard controller gives user signals that are used while simulation if off:</p>
+<ul>
+<li>Y and X for [coordinates bus]</li>
+<li>Switch signal which is implemented as <code>Write row</code> in <a href="#random-write-buffer">random write buffer</a></li>
+</ul>
+<img width="80%" src="./keyboard-controller-usage.png">
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="random-write-buffer">Random write buffer</h3>
+<p>This circuit saves 32-bit row to one of 32 registers and sends all 32 saved rows to outputs.</p>
+<p>Trigger for registers is decoder with 5-bit selector <code>Y (row index)</code> and <code>Write row</code> enable input. So, buffer will save row from <code>Input row</code> to <code>Y</code>th register on rising of <code>Write row</code>.</p>
+<p>Clear signal resets all registers.</p>
+<p><strong>Circuit screenshots:</strong></p>
+<div class="columns">
+	<img width="45%" src="./RWB-circuit-1.png">
+	<img width="45%" src="./RWB-circuit-2.png">
+</div>
+<p><strong>Usage in Engine circuit:</strong>
+In engine we get input row through tunnel from <a href="#rows-bit-invertor">row's bit invertor</a></p>
+<p>Clear signal works while simulation is off.</p>
+<p>Y data goes from <a href="#coordinates-bus">coordinates bus</a></p>
+<p>Write row signal goes:</p>
+<ul>
+<li>From <a href="#keyboard-controller">keyboard controller</a> when simulation is off</li>
+<li>From <a href="#io-registers-for-changing-field">Register <code>0xf9</code></a> when simulation is on</li>
+</ul>
+<p><img src="./RWB-usage.png" alt="Usage in Engine"></p>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<p><span id="stable-generations-buffer"></span></p>
+<h3 id="stable-generation's-buffer">Stable generation's buffer</h3>
+<p>This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input <code>Save generation trigger</code></p>
+<p><strong>Circuit screenshot:</strong></p>
+<img width="66%" src="./SGB-circuit.png">
+<p><strong>Circuit usage in Engine:</strong>
+Buffer update depends on simulation state:</p>
+<ul>
+<li>While simulation is off buffer is updated by <code>clock</code></li>
+<li>While simulation is on buffer is updated after <a href="#main-cycle">CdM-8 main cycle's full execution</a> by signal from <a href="#io-registers-for-changing-field">pseudo I/O register</a></li>
+</ul>
+<img width="66%" src="./SGB-usage.png">
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="row-environment-mask">Row environment mask</h3>
+<p>This circuit gets 1 32-bit row and gives 1 32-bit row where <code>i</code> bit is <code>1</code> when in input row at least one of <code>i-1</code>, <code>i</code>, <code>i+1</code> bits is <code>1</code> (<code>OR</code> gate on splitter outputs). <strong>So, result row let us easily detect bit with significant environment.</strong></p>
+<p><strong>Circuit screenshot and usage:</strong> this circuit is used in <a href="#environment-data-constructor">environment data constructor</a> for detecting next <code>X</code> with significant environment by priority encoder.</p>
+<div class="columns">
+	<img width="33%" src="./REM-circuit.png">
+	<img width="60%" src="./REM-usage.png">
+</div>
+<h3 id="environment-data-constructor">Environment data constructor</h3>
+<p>Job of this circuit is constructing data about cell's environment for <a href="#main-cycle">optimized new generation's counting in CdM-8</a>.</p>
+<p>It has 32 32-bit inputs for rows and 5-bit <code>Y</code>, <code>X</code> inputs and works by this steps:</p>
+<ol>
+<li>Get rows <code>Y-1</code>, <code>Y</code> and <code>Y</code> using multiplexers</li>
+<li>Right cycled shift 3 rows on <code>X-1</code> positions to get <code>X-1</code>, <code>X</code> and <code>X+1</code> bits on <code>0</code>, <code>1</code> and <code>2</code>
+<ol>
+<li>Send bit <code>1</code> from middle row to centre bit output</li>
+<li>Use bits <code>[0,2]</code> from top and bottom rows and bits <code>0</code> and <code>2</code> from middle row as carry signals for 8 8-bit adders to get sum of cells surrounding centre bit</li>
+</ol>
+</li>
+<li>Get common row from <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> rows using <code>OR</code> gate for analyzing environment. It is name <strong>environment row</strong></li>
+<li>Construct environment mask from environment row using <a href="#row-environment-mask">row environment mask circuit</a> and shift it right on 1 bit to get <code>X-1</code> bit on <code>31</code>th position</li>
+<li>This row goes to priority encoder that determines 2 values:
+<ol>
+<li>If environment mask row is null encoder send true on <code>is row env. null</code> output</li>
+<li>Index of highest indexed bit which is <code>1</code> after sum with <code>X</code> input give us next <code>X</code> with significant environment. This value goes to <code>Next X with significant env.</code></li>
+</ol>
+</li>
+</ol>
+<p><strong>Circuit screenshots:</strong></p>
+<p><img src="./env-constructor-circuit-1.png" alt="Screen 1"></p>
+<p><img src="./env-constructor-circuit-2.png" alt="Screen 2"></p>
+<p><strong>Usage in Engine circuit:</strong>
+Environment data constructor is connected to rows after <a href="#stable-generations-buffer">stable generation's buffer</a> to ensure that CPU works with stable generation.</p>
+<p>All outputs go through tunnels to <a href="#io-registers-with-environment-data">I/O registers</a> that are used in <a href="#main-cycle">ASM main cycle</a></p>
+<p>Y and X go from <a href="#coordinates-bus">coordinates bus</a> but while simulation is off environment data isn't used.</p>
+<img width="66%" src="./env-constructor-usage.png">
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<p><span id="rows-bit-invertor"></span></p>
+<h3 id="row's-bit-invertor">Row's bit invertor</h3>
+<p>This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. <strong>For inversion we use decoder constructed bit mask and XOR</strong></p>
+<p><strong>Circuit screenshots:</strong></p>
+<div class="columns">
+	<img width="25%" src="./RBI-circuit-1.png">
+	<img width="70%" src="./RBI-circuit-2.png">
+</div>
+<p><strong>Usage in Engine circuit:</strong>
+32 input rows goes from <a href="#random-write-buffer">random write buffer</a> and inverted row goes through tunnel to <code>input row</code> of <a href="#random-write-buffer">random write buffer</a></p>
+<p>Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
+<img width="66%" src="./RBI-usage.png">
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="binary-selector">Binary selector</h3>
+<p>This circuit should choose one of two input values. <code>Binary selector</code> should choose second value if the <code>switch</code> input is <code>1</code> and first value otherwise.</p>
+<p>Inputs:</p>
+<ul>
+<li>input values: 2 32-bit rows</li>
+<li><code>switch</code> - 1-bit</li>
+</ul>
+<p>Outputs:</p>
+<ul>
+<li>selected value: 1 32-bit row</li>
+</ul>
+<p><strong>Circuit screenshot and its usage:</strong>
+Binary selector is used in <a href="#blinker">blinker</a> for convenient circuit composing.</p>
+<div class="columns">
+	<img width="45%" src="./binary_selector1.png">
+	<img width="45%" src="./binary_selector2.png">
+</div>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<hr>
+<h3 id="blinker">Blinker</h3>
+<p><code>Blinker</code> must switch value of <code>X</code> bit in <code>Y</code> row to opposite if the <code>switch</code> input is raised and return new row between others unchanged. <strong>It is important that this circuit should not store new values in itself.</strong></p>
+<p>Inputs:</p>
+<ul>
+<li>matrix rows: 32 32-bit rows</li>
+<li><code>Y</code> coordinate (row number) - 5-bit</li>
+<li><code>X</code> coordinate (bit number in the row) - 5-bit</li>
+<li><code>switch</code> - if this input is raised current bit must switch to opposite</li>
+</ul>
+<p>Outputs:</p>
+<ul>
+<li>32 32-bit outputs, in one of which one bit was changed</li>
+</ul>
+<p><strong>Circuit screenshots:</strong></p>
+<div class="columns">
+	<img width="35%" src="./blinker1.png">
+	<img width="55%" src="./blinker2.png">
+</div>
+<p><strong>Usage in Engine circuit:</strong>
+In <code>switch</code> handles clock signal. Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
+<img width="50%" src="./blinker3.png">
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+
+</body>
+</html>

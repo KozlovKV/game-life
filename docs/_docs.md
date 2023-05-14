@@ -1,5 +1,52 @@
+<style>
+	body {
+		font-size: 16px;
+		padding: 40px;
+	}
+	h1 {
+		text-align: center;
+		font-size: 1.8rem;
+		margin-top: 5%;
+	}
+	h2, h3, h4 {
+		margin-top: 3%;
+	}
+	h2 {
+		font-size: 1.6rem;
+	}
+	h3 {
+		font-size: 1.4rem;
+	}
+	h4 {
+		font-size: 1.2rem;
+	}
+
+	img {
+		border: 1px solid black;
+	}
+	.columns {
+		margin-top: 10px;
+		margin-bottom: 10px;
+		display: flex;
+		justify-content: space-around;
+		align-items: flex-start;
+	}
+	:not(pre):not(.hljs) > code {
+		color: #A98E55;
+	}
+	@media print {
+		hr {
+			page-break-after: always;
+		}
+	}
+</style>
+
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Differences from the basic technical task](#differences-from-the-basic-technical-task)
 - [How to play](#how-to-play)
 - [Documentation](#documentation)
+- [Special terms](#special-terms)
 - [Assembler](#assembler)
 	- [Short description](#short-description)
 	- [RAM distribution](#ram-distribution)
@@ -37,48 +84,12 @@
 		- [Binary selector](#binary-selector)
 		- [Blinker](#blinker)
 
-<style>
-	body {
-		font-size: 16px;
-		padding: 50px;
-	}
-	h1 {
-		text-align: center;
-		font-size: 2rem;
-		margin-top: 7%;
-	}
-	h2, h3, h4 {
-		margin-top: 3%;
-	}
-	h2 {
-		font-size: 1.75rem;
-	}
-	h3 {
-		font-size: 1.5rem;
-	}
-	h4 {
-		font-size: 1.25rem;
-	}
+---
 
-	img {
-		border: 1px solid black;
-	}
-	.columns {
-		margin-top: 10px;
-		margin-bottom: 10px;
-		display: flex;
-		justify-content: space-around;
-		align-items: flex-start;
-	}
-	:not(pre):not(.hljs) > code {
-		color: #A98E55;
-	}
-	@media print {
-		hr {
-			page-break-after: always;
-		}
-	}
-</style>
+# Differences from the basic technical task
+*soon*
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -102,9 +113,23 @@
 	<img width="40%" src="./how-to-play.png">
 </div>
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 # Documentation
+# Special terms
+There are some special terms that are used in different places below:
+1. **Environment** is cell or cells' set with a border one cell wide on all sides. E.g.: 
+   - for cell `(Y, X)` environment will be `[(Y-1, X-1), (Y-1, X), (Y-1, X+1), (Y, X-1), (Y, X), (Y, X+1), (Y+1, X-1), (Y+1, X), (Y+1, X+1)]` with **centre bit** bit `(Y, X)` (term **centre bit** is meaningful only for one cell's environment)
+   - environment for full row (`all X in range [0, 31]`) `Y` will be full rows `Y-1`, `Y` and `Y+1`
+2. **Environment sum** is a sum of cells' values from environment border
+3. **Significant environment** is an environment which has at least one cell with value `1` (**including border cells**)
+
+*[Back to table of contents](#table-of-contents)*
+
+---
+
 # Assembler
 ## Short description
 Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation]
@@ -145,6 +170,8 @@ deathConditionsRowStart:
 ```
 </details>
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ### Cells referring to I/O regs.
@@ -183,7 +210,7 @@ asect 0xf7
 IONullRowsEnv:
 
 asect 0xf8
-IONullByteEnv:
+IONextSignificantX:
 
 asect 0xf9
 IOInvertBitSignal:
@@ -193,6 +220,8 @@ IOUpdateGeneration:
 ```
 
 </details>
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -243,10 +272,11 @@ start:
 ```
 </details>
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ### Main cycle
-*Edit to new version!*
 
 This part will repeats while simulations stays on.
 
@@ -254,13 +284,11 @@ Before cycle we update stable generation's buffer using save signal to `IOUpdate
 
 Main cycle iterates by `Y` (row index) in decreasing order `[31, 0]`.
 
-In next paragraphs we use term **environment**. It means that we analyze mentioned cells and border of 1 cells from all sides.
+We use two optimizations for skipping meaningless iterations:
+1. If rows `Y-1`, `Y` and `Y+1` (rows environment) are null (flag from `IONullRowsEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we decrement `Y`.
+2. If rows environment isn't null we iterates by `X` with significant environment (surrounding sum > 0 or centre bit = 1) which are received from [`IONextSignificantX` I/O register](#io-registers-with-environment-data). When new received `X` >= current `X` we end cycle for this row 
 
-We use to optimizations for skipping meaningless iterations:
-1. If rows `Y-1`, `Y` and `Y+1` (rows environment) are null (flag from `IONullRowsEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we increment `Y`.
-2. If rows environment isn't null we iterates by `X` in decreasing order `[31, 0]`, but divide iteration into 8 parts by 4 cells (we named it *half-byte environment*). If this half-byte environment is null (flag from `IONullHalfByteEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we skip this 4 cells
-
-If both flags above are `0` we get state of selected cell and its environment's sum using `IOBit` and `IOEnvSum` addresses which are referred to [I/O registers](#io-registers-with-environment-data)
+For every significant `(Y, X)` combination we get state of selected cell and its environment's sum using `IOBit` and `IOEnvSum` addresses which are referred to [I/O registers](#io-registers-with-environment-data)
 
 For zero sum:
 - Alive cell is killed immediately using save signal `IOInvertBitSignal` [referred to Logisim](#io-registers-for-changing-field)
@@ -300,70 +328,53 @@ main:
 		tst r3
 		bnz rowProcessed
 
-		ldi r1, 31 # Bit index
-		ldi r3, 8 # Half-bytes iterator
+		ldi r1, 0 # Value for searching first significant X
+
+		# Send X to Logisim
+		ldi r0, IOX
+		st r0, r1
+
+		# Get the first X with significant env.
+		ldi r3, IONextSignificantX
+		ld r3, r2
+
 		do 
-			push r3 # Save half-bytes in row iterator
+			# Save currnt X
+			move r2, r1
+			push r1
 
 			# Send X to Logisim
 			ldi r0, IOX
 			st r0, r1
 
-			# Get half-byte env. (centre cells [x, x-3]) 
-			# If it is null => 4 cells will be skipped
-			ldi r0, IONullHalfByteEnv
+			# Read data for this cell
+			ldi r0, IOEnvSum
 			ld r0, r0
-			tst r0
-			bnz skipHalfByte
+			ldi r1, IOBit
+			ld r1, r1
 
-			# Iteration by half-byte
-			ldi r3, 4
-			do
-				push r1
-
-				# Send X to Logisim for every new cell
-				ldi r0, IOX
-				st r0, r1
-
-				# Read data for this cell
-				ldi r0, IOEnvSum
-				ld r0, r0
-				ldi r1, IOBit
-				ld r1, r1
-
-				# Check birth or death conditions and save bit depends on conditions
-				if
-					tst r0
+			# Check birth or death conditions and save bit depends on conditions
+			if
+				tst r0
+			is nz
+				jsr processBit
+			else
+				# If sum = 0 alive cell must die
+				if 
+					tst r1
 				is nz
-					jsr processBit
-				else
-					# If sum = 0 alive cell must die
-					if 
-						tst r1
-					is nz
-						ldi r0, IOInvertBitSignal
-						st r0, r0
-					fi
+					ldi r0, IOInvertBitSignal
+					st r0, r0
 				fi
+			fi
 
-				# Decrement X (bit index)
-				pop r1
-				dec r1
+			# Get the next X with significant env. lower than current
+			pop r1
+			ld r3, r2
 
-				# Decrement half-byte iterator
-				dec r3
-			until z
-			br byteProcessed
-			skipHalfByte:
-				# If half-byte was skipped we descrease X by 4
-				ldi r0, -4
-				add r0, r1
-			byteProcessed:
-
-			# Get and decrement half-bytes in row iterator
-			pop r3
-			dec r3
-		until z
+			# If new X greater of equal => cycle ends
+			cmp r2, r1 
+		until ge
 		rowProcessed:
 
 		# Get and decrement row iterator
@@ -375,6 +386,8 @@ br main
 ```
 
 </details>
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -471,6 +484,8 @@ We decided that alive cell should die and death cell cannot birth. Due to specif
 ...
 ```
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 # Logisim
@@ -492,6 +507,8 @@ Here you can see main jobs for Logisim part and logical ordered references for a
    3. [Random write buffer](#random-write-buffer)
    4. [Stable generation's buffer](#stable-generations-buffer)
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ## Engine circuit
@@ -505,7 +522,7 @@ This circuit is main one element of game. It handles [all inputs from user](#mai
 </div>
 
 This circuit contains:
-1. Most of all circuits below excepting [binary selector](#binary-selector) with connected to them [coordinates bus]():
+1. Most of all circuits below with connected to them [coordinates bus](#coordinates-bus) (*excepting [binary selector](#binary-selector) and [row environment mask](#row-environment-mask)*):
    - ![Subcircuits in engine](./engine-subcircuits.png)
 2. CdM-8 integration scheme with Harvard architecture: 
    - <img width="70%" src="./engine-cdm8-integration.png">
@@ -519,6 +536,8 @@ Most of circuits work with coordinates `Y` (row index) and `X` (bit index) and c
 
 Therefore we use two multiplexers that choose coordinates source depending on simulation state:
 ![Coordinates bus](./engine-coordinates-bus.png)
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -556,9 +575,11 @@ KEY           | DIRECTION    | X DELTA | Y DELTA
 `NUM 8` / `W` | top          | `0`     | `-1`
 `NUM 9` / `E` | top-right    | `+1`    | `-1`
 
-**On matrix cursor is marked by [blinker](#blinker)**
+**Cursor position on matrix is marked by [blinker](#blinker)**
 
 `NUM 5` / `Space` - change state of selected cell in [random write buffer](#random-write-buffer) using [row's bit invertor](#rows-bit-invertor)
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -590,7 +611,7 @@ CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
 `0xf5`        | `IOBit`              | `READ ONLY`      <td rowspan="4">[Link](#io-registers-with-environment-data)</td>
 `0xf6`        | `IOEnvSum`           | `READ ONLY`    |
 `0xf7`        | `IONullRowsEnv`      | `READ ONLY`    |
-`0xf8`        | `IONullHalfByteEnv`  | `READ ONLY`    |
+`0xf8`        | `IONextSignificantX`  | `READ ONLY`    |
 `0xf9`        | `IOInvertBitSignal`  | `PSEUDO WRITE`   <td rowspan="2">[Link](#io-registers-for-changing-field)</td>
 `0xfa`        | `IOUpdateGeneration` | `PSEUDO WRITE` |
 
@@ -612,13 +633,13 @@ Coordinates from these registers are used in all Logisim components to tell what
 ![Coordinates registers](./IO-coords.png)
 
 #### I/O "registers" with environment data
-*Edit to new version!*
-
 These "registers" aren't exist. There are just tunnels which are connected to [environment constructor outputs](#environment-data-constructor):
 - `0xf5` - READ ONLY - 1 when bit on position `(Y, X)` is 1
 - `0xf6` - READ ONLY - sum of bits around cell `(Y, X)`
 - `0xf7` - READ ONLY - 1 when rows `Y-1`, `Y` and `Y+1` are null
-- `0xf8` - READ ONLY - 1 when in rows `Y-1`, `Y` and `Y+1` all bits from `X+1` to `X-4` are null
+- `0xf8` - READ ONLY - next `X` which satisfy some of conditions:
+  - Cell `(Y, X)` isn't `0`
+  - sum of bits around cell `(Y, X)` greater than `0`
 
 ![I/O "registers" with environment data 1](./IO-env-1.png)
 ![I/O "registers" with environment data 2](./IO-env-2.png)
@@ -628,6 +649,8 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 - `0xfa` - PSEUDO WRITE - save signal to this cell will update [generation buffer](#stable-generations-buffer)
 
 ![I/O "registers" for changing field](./IO-change-signals.png)
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -648,7 +671,9 @@ Keyboard controller gives user signals that are used while simulation if off:
 - Y and X for [coordinates bus] 
 - Switch signal which is implemented as `Write row` in [random write buffer](#random-write-buffer)
 
-![Keyboard controller usage](./keyboard-controller-usage.png)
+<img width="80%" src="./keyboard-controller-usage.png">
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -679,6 +704,8 @@ Write row signal goes:
 
 ![Usage in Engine](./RWB-usage.png)
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 <span id="stable-generations-buffer"></span>
@@ -697,23 +724,33 @@ Buffer update depends on simulation state:
 
 <img width="66%" src="./SGB-usage.png">
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ### Row environment mask
-*Edit to new version!*
+This circuit gets 1 32-bit row and gives 1 32-bit row where `i` bit is `1` when in input row at least one of `i-1`, `i`, `i+1` bits is `1` (`OR` gate on splitter outputs). **So, result row let us easily detect bit with significant environment.** 
+
+**Circuit screenshot and usage:** this circuit is used in [environment data constructor](#environment-data-constructor) for detecting next `X` with significant environment by priority encoder. 
+
+<div class="columns">
+	<img width="33%" src="./REM-circuit.png">
+	<img width="60%" src="./REM-usage.png">
+</div>
 
 ### Environment data constructor
-*Edit to new version!*
-
-Job of this circuit is constructing data about cell's environment for [CdM-8 to determine new cell's state](#main-cycle).
+Job of this circuit is constructing data about cell's environment for [optimized new generation's counting in CdM-8](#main-cycle).
 
 It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this steps:
 1. Get rows `Y-1`, `Y` and `Y` using multiplexers
-2. Right cycled shift 3 rows on `X-1` positions to get `X-1`, `X` and `X+1` bits on `0`, `1` and `2` positions and `X+2`, `X+3` and `X+4` on `31`, `30` and `29` positions
+2. Right cycled shift 3 rows on `X-1` positions to get `X-1`, `X` and `X+1` bits on `0`, `1` and `2`
    1. Send bit `1` from middle row to centre bit output
-   2. Use bits `[0,2]` from top and bottom rows and bits `0` and `2` from middle row as carry signals for 8 adders to get sum of cells surrounding centre bit
-3. Shifted rows goes to 32-bit splitters with XORs. When all XORs send true flag `is row env. null` will be true
-4. Bits `[X-1, X+4]` from all rows goes to next XORs. When these all send true flag `is half-byte env. null` will be true
+   2. Use bits `[0,2]` from top and bottom rows and bits `0` and `2` from middle row as carry signals for 8 8-bit adders to get sum of cells surrounding centre bit
+3. Get common row from `Y-1`, `Y` and `Y+1` rows using `OR` gate for analyzing environment. It is name **environment row**
+4. Construct environment mask from environment row using [row environment mask circuit](#row-environment-mask) and shift it right on 1 bit to get `X-1` bit on `31`th position
+5. This row goes to priority encoder that determines 2 values:
+   1. If environment mask row is null encoder send true on `is row env. null` output
+   2. Index of highest indexed bit which is `1` after sum with `X` input give us next `X` with significant environment. This value goes to `Next X with significant env.`
 
 **Circuit screenshots:**
 
@@ -722,13 +759,15 @@ It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this ste
 ![Screen 2](./env-constructor-circuit-2.png)
 
 **Usage in Engine circuit:**
-Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU with stable generation.
+Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU works with stable generation.
 
 All outputs go through tunnels to [I/O registers](#io-registers-with-environment-data) that are used in [ASM main cycle](#main-cycle)
 
 Y and X go from [coordinates bus](#coordinates-bus) but while simulation is off environment data isn't used.
 
 <img width="66%" src="./env-constructor-usage.png">
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -751,6 +790,8 @@ Y and X go from [coordinates bus](#coordinates-bus)
 
 <img width="66%" src="./RBI-usage.png">
 
+*[Back to table of contents](#table-of-contents)*
+
 ---
 
 ### Binary selector
@@ -763,13 +804,15 @@ Inputs:
 Outputs:
 - selected value: 1 32-bit row
 
-**Circuit screenshot and its usage in Engine:**
+**Circuit screenshot and its usage:**
 Binary selector is used in [blinker](#blinker) for convenient circuit composing.
 
 <div class="columns">
 	<img width="45%" src="./binary_selector1.png">
 	<img width="45%" src="./binary_selector2.png">
 </div>
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
@@ -793,6 +836,8 @@ Outputs:
 </div>
 
 **Usage in Engine circuit:**
-In engine clock signal is used as `switch`. Y and X go from [coordinates bus](#coordinates-bus)
+In `switch` handles clock signal. Y and X go from [coordinates bus](#coordinates-bus)
 
 <img width="50%" src="./blinker3.png">
+
+*[Back to table of contents](#table-of-contents)*
