@@ -96,9 +96,11 @@
 ---
 
 # Analogues
-1. *Write about full Logisim version*
-2. *Write about web version*
-3. *Video by Onigiri?*
+We have found 3 interesting versions of "Conway game of life" in the Internet
+
+1. [Version is full madden in Logisim with toroidal field `16`*`16`.](https://github.com/AlessandroFare/Game-of-Life-Logisim) Works fast but small field doesn't allow construct a lot of setups. For example ["Pulsar"](https://conwaylife.com/wiki/Pulsar) or ["Copperhead"](https://playgameoflife.com/lexicon/copperhead):
+2. [Web version](https://conwaylife.com/) - fast and convenient. Has endless field. Alas, we do not have similar capacities
+3. In [this video](https://www.youtube.com/watch?v=FiO6jkNkrb4) you can see Turing machine, 1D and 3D version, CPU-like version and so on.
 
 *[Back to table of contents](#table-of-contents)*
 
