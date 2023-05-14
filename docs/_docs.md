@@ -113,9 +113,9 @@ We have made 2 powerful improvements and 2 concept changes from the basic techni
 
 **Concept changes:**
 1. We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
-2. Video buffer (named [random write buffer]) has been made asynchronous. Besides, we have add `clear` input to it.
+2. Video buffer (named [random write buffer](#random-write-buffer)) has been made asynchronous. Besides, we have add `clear` input to it.
 
-**[Other components] wasn't mentioned in basic technical project**
+**Other components wasn't mentioned in basic technical project**
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -140,7 +140,7 @@ KEY           | DIRECTION    |
 
 `NUM 5` / `Space` - change state of selected cell
 
-3. When you have set initial field state press button "Simulation switch" and observe evolution!
+3. When you have set initial field state press button "Simulation switch" and observe evolution! **You can stop simulation and edit field at any time. But if CPU cursor has processed some cells you would get half-counted generation**
 
 <img width="80%" src="./how-to-play.png">
 
