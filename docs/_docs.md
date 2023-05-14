@@ -43,6 +43,8 @@
 
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [Problem statement](#problem-statement)
+- [Analogues](#analogues)
 - [Differences from the basic technical task](#differences-from-the-basic-technical-task)
 - [How to play](#how-to-play)
 - [Documentation](#documentation)
@@ -83,6 +85,22 @@
 		- [Row's bit invertor](#rows-bit-invertor)
 		- [Binary selector](#binary-selector)
 		- [Blinker](#blinker)
+
+---
+
+# Problem statement
+*soon*
+
+*[Back to table of contents](#table-of-contents)*
+
+---
+
+# Analogues
+1. *Write about full Logisim version*
+2. *Write about web version*
+3. *Video by Onigiri?*
+
+*[Back to table of contents](#table-of-contents)*
 
 ---
 
