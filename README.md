@@ -4,6 +4,6 @@ Conway's game of life for Digital platforms course in **Novosibirsk State Univer
 
 Created by *Kozlov Kirill* and *Palking Egor* (group `22215`) in 2023.
 
-## [Documentation](./docs.md)
+## [Documentation](./docs/_docs.md)
 [Web version](https://kozlovkv.github.io/game-life/)
 
