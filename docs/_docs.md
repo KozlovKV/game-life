@@ -89,7 +89,21 @@
 ---
 
 # Problem statement
-*soon*
+ Realization of "Conway game of life" using Logisim and Cdm-8.
+
+ "Conway Game of life" is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.
+
+ **Rules:**
+1. The field of "Game of life" is a grid of square cells. Each cell has two conditions it can be live or dead.
+2. Every cell has 8 neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent.
+3. Any live cell with less than two neighbours dies because of underpopulation.
+4. Any dead cell with three neighbours becomes a live.
+5. Any live cell with two or three neighbours continues to live.
+6. Any live cell with more than three neighbours dies because of overpopulation.
+
+**Features of our realization:**
+1. Toroidal cycled field with size `32*32`.
+2. Extended game rules. Player can set his own simulation rules.
 
 *[Back to table of contents](#table-of-contents)*
 
