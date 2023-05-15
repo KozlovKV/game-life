@@ -141,12 +141,15 @@ Logisim part is responsible for:
 
 1. User interface. Player can set his own simulation rules and start a new game or clean the field with special buttons.
 2. Display represented by matrix with size `32x32`. Matrix has two different colors for dead and alive cells.
-3. Counting the neighbours for each cell and return this data to the procces.
+3. Constructing environment data for current cell.
 4. Storing current generation and new generation of our simulation.
 
 Assembler part is responsible for:
 
-1. Creating a new generation and if necessary send an inversion signal to Logisim.
+1. Spread simulation rules.
+2. Iterates by Y from 0 to 31 and skip null rows.
+3. Iterates by cells in row Y which have significant environment.
+4. Get cell's environment data and send invert signal if it necessary.
 
 *[Back to table of contents](#table-of-contents)*
 
