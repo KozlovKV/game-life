@@ -422,6 +422,26 @@ blockquote {
 		color: #A98E55;
 	}
 	@media print {
+		body {
+			margin: 3cm 2cm 1cm 2cm;
+			padding: 0;
+			font-family: 'Times New Roman';
+		}
+
+		p {
+			text-indent: 1.25cm;
+		}
+
+		@page {
+			size: auto;
+			margin: 0;
+			text-align: justify;
+		}
+
+		header {
+			display: none;
+		}
+
 		hr {
 			page-break-after: always;
 		}
@@ -511,7 +531,22 @@ blockquote {
 </ul>
 <hr>
 <h1 id="problem-statement">Problem statement</h1>
-<p><em>soon</em></p>
+<p>Realization of &quot;Conway game of life&quot; using Logisim and Cdm-8.</p>
+<p>&quot;Conway Game of life&quot; is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.</p>
+<p><strong>Rules:</strong></p>
+<ol>
+<li>The field of &quot;Game of life&quot; is a grid of square cells. Each cell has two conditions it can be live or dead.</li>
+<li>Every cell has 8 neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent.</li>
+<li>Any live cell with less than two neighbours dies because of underpopulation.</li>
+<li>Any dead cell with three neighbours becomes a live.</li>
+<li>Any live cell with two or three neighbours continues to live.</li>
+<li>Any live cell with more than three neighbours dies because of overpopulation.</li>
+</ol>
+<p><strong>Features of our realization:</strong></p>
+<ol>
+<li>Toroidal cycled field with size <code>32*32</code>.</li>
+<li>Extended game rules. Player can set his own simulation rules.</li>
+</ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <hr>
 <h1 id="analogues">Analogues</h1>

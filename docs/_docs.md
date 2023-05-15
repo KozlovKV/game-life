@@ -35,7 +35,28 @@
 		color: #A98E55;
 	}
 	@media print {
-		hr {
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: 'Times New Roman';
+		}
+
+		p {
+			text-indent: 1.25cm;
+		}
+
+		@page {
+			margin: 2cm 1cm 2cm 3cm;
+			text-align: justify;
+		}
+
+		h2, h3 {
+			margin-bottom: 0.1cm;
+		}
+
+		hr, .break {
+			margin: 0;
+			padding: 0;
 			page-break-after: always;
 		}
 	}
@@ -86,7 +107,7 @@
 		- [Binary selector](#binary-selector)
 		- [Blinker](#blinker)
 
----
+<div class="break"></div>
 
 # Problem statement
  Realization of "Conway game of life" using Logisim and Cdm-8.
@@ -107,7 +128,7 @@
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 # Analogues
 We have found 3 interesting versions of "Conway game of life" in the Internet
@@ -118,7 +139,7 @@ We have found 3 interesting versions of "Conway game of life" in the Internet
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 # Differences from the basic technical task
 We have made 2 powerful improvements and 2 concept changes from the basic technical task.
@@ -135,7 +156,7 @@ We have made 2 powerful improvements and 2 concept changes from the basic techni
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 # How to play
 **Our version of "Conway game of life" works with universal sets of conditions for birth and survival.**
@@ -162,7 +183,7 @@ KEY           | DIRECTION    |
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 # Documentation
 # Special terms
@@ -175,7 +196,7 @@ There are some special terms that are used in different places below:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 # Assembler
 ## Short description
@@ -219,7 +240,7 @@ deathConditionsRowStart:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
@@ -270,7 +291,7 @@ IOUpdateGeneration:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ## Code description
 ### Simulation start
@@ -321,7 +342,7 @@ start:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Main cycle
 
@@ -436,7 +457,7 @@ br main
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Subroutines
 #### `spreadByte`
@@ -533,7 +554,7 @@ We decided that alive cell should die and death cell cannot birth. Due to specif
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 # Logisim
 ## Main concept
@@ -556,7 +577,7 @@ Here you can see main jobs for Logisim part and logical ordered references for a
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ## Engine circuit
 ![Engine usage](./main.png)
@@ -586,7 +607,7 @@ Therefore we use two multiplexers that choose coordinates source depending on si
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ## Controls
 ### Main signals
@@ -630,7 +651,7 @@ KEY           | DIRECTION    | X DELTA | Y DELTA
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ## I/O registers
 I/O bus have minor changes: selection of I/O addresses from CPU `addr` is detected by `less than` comparator's output with the second input `0xf0` (the first I/O cell address)
@@ -701,7 +722,7 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ## Elements description
 ### Keyboard controller
@@ -724,7 +745,7 @@ Keyboard controller gives user signals that are used while simulation if off:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Random write buffer
 This circuit saves 32-bit row to one of 32 registers and sends all 32 saved rows to outputs.
@@ -755,7 +776,7 @@ Write row signal goes:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 <span id="stable-generations-buffer"></span>
 
@@ -775,7 +796,7 @@ Buffer update depends on simulation state:
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Row environment mask
 This circuit gets 1 32-bit row and gives 1 32-bit row where `i` bit is `1` when in input row at least one of `i-1`, `i`, `i+1` bits is `1` (`OR` gate on splitter outputs). **So, result row let us easily detect bit with significant environment.** 
@@ -818,7 +839,7 @@ Y and X go from [coordinates bus](#coordinates-bus) but while simulation is off 
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 <span id="rows-bit-invertor"></span>
 
@@ -841,7 +862,7 @@ Y and X go from [coordinates bus](#coordinates-bus)
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Binary selector
 This circuit should choose one of two input values. `Binary selector` should choose second value if the `switch` input is `1` and first value otherwise.
@@ -863,7 +884,7 @@ Binary selector is used in [blinker](#blinker) for convenient circuit composing.
 
 *[Back to table of contents](#table-of-contents)*
 
----
+<div class="break"></div>
 
 ### Blinker
 `Blinker` must switch value of `X` bit in `Y` row to opposite if the `switch` input is raised and return new row between others unchanged. **It is important that this circuit should not store new values in itself.**
