@@ -453,7 +453,7 @@ blockquote {
 <li><a href="#table-of-contents">Table of contents</a></li>
 <li><a href="#problem-statement">Problem statement</a></li>
 <li><a href="#analogues">Analogues</a></li>
-<li><a href="#user-guide">User guide#</a></li>
+<li><a href="#user-guide">User guide</a></li>
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#special-terms">Special terms</a></li>
 <li><a href="#assembler">Assembler</a>
@@ -531,16 +531,16 @@ blockquote {
 </ul>
 <div class="break"></div>
 <h1 id="problem-statement">Problem statement</h1>
-<p>Realization of &quot;Conway game of life&quot; using Logisim and Cdm-8.</p>
-<p>&quot;Conway Game of life&quot; is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.</p>
+<p>Realization of &quot;Conway's game of life&quot; using Logisim and Cdm-8.</p>
+<p>&quot;Conway's game of life&quot; is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.</p>
 <p><strong>Rules:</strong></p>
 <ol>
 <li>The field of &quot;Game of life&quot; is a grid of square cells. Each cell has two conditions it can be live or dead.</li>
-<li>Every cell has 8 neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent.</li>
-<li>Any live cell with less than two neighbours dies because of underpopulation.</li>
-<li>Any dead cell with three neighbours becomes a live.</li>
-<li>Any live cell with two or three neighbours continues to live.</li>
-<li>Any live cell with more than three neighbours dies because of overpopulation.</li>
+<li>Every cell has 8 neighbors, which are the cells that are horizontally, vertically, or diagonally adjacent.</li>
+<li>Any live cell with less than two neighbors dies because of underpopulation.</li>
+<li>Any dead cell with three neighbors becomes a live.</li>
+<li>Any live cell with two or three neighbors continues to live.</li>
+<li>Any live cell with more than three neighbors dies because of overpopulation.</li>
 </ol>
 <p>We have made 2 powerful improvements and 2 concept changes from the basic technical task.</p>
 <p><strong>Improvements:</strong></p>
@@ -554,11 +554,27 @@ blockquote {
 <li>Video buffer (named <a href="#random-write-buffer">random write buffer</a>) has been made asynchronous. Besides, we have add <code>clear</code> input to it.</li>
 </ol>
 <p><strong>Other components wasn't mentioned in basic technical project. Here you can see our addition for the technical project.</strong></p>
-<p><em>Add concept</em></p>
+<p><strong>Concept</strong></p>
+<p>Realization of &quot;Conway's game of life&quot; has two main parts, Logisim part and Assembler part.</p>
+<p>Logisim part is responsible for:</p>
+<ol>
+<li>User interface. Player can set his own simulation rules and start a new game or clean the field with special buttons.</li>
+<li>Display. Display represented by matrix with size <code>32x32</code>. Matrix has two different colors for dead and alive cells.</li>
+<li>Constructing environment data for current cell.</li>
+<li>Storing current generation and new generation of our simulation.</li>
+</ol>
+<p>Assembler:</p>
+<ol>
+<li>Spreads simulation rules.</li>
+<li>Iterates by all rows and skip null rows.</li>
+<li>Iterates by cells in every row which have significant environment.</li>
+<li>Gets cell's environment data and sends invert signal if it is necessary.</li>
+<li>Interrupts field processing if static generation was reached.</li>
+</ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h1 id="analogues">Analogues</h1>
-<p>We have found 3 interesting versions of &quot;Conway game of life&quot; in the Internet</p>
+<p>We have found 3 interesting versions of &quot;Conway's game of life&quot; in the Internet</p>
 <ol>
 <li><a href="https://github.com/AlessandroFare/Game-of-Life-Logisim">Version is full madden in Logisim with toroidal field <code>16</code>*<code>16</code>.</a> Works fast but small field doesn't allow construct a lot of setups. For example <a href="https://conwaylife.com/wiki/Pulsar">&quot;Pulsar&quot;</a> or <a href="https://playgameoflife.com/lexicon/copperhead">&quot;Copperhead&quot;</a>:</li>
 <li><a href="https://conwaylife.com/">Web version</a> - fast and convenient. Has endless field. Alas, we do not have similar capacities</li>
@@ -566,8 +582,8 @@ blockquote {
 </ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
-<h1 id="user-guide">User guide#</h1>
-<p><strong>Our version of &quot;Conway game of life&quot; works with universal sets of conditions for birth and survival.</strong></p>
+<h1 id="user-guide">User guide</h1>
+<p><strong>Our version of &quot;Conway's game of life&quot; works with universal sets of conditions for birth and survival.</strong></p>
 <ol>
 <li>To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position <code>N</code> means that birth/survival will be fulfilled when cell has <code>N</code> neighbors.</li>
 <li>After this click on keyboard element and use one of two keyboard layouts to move blinking cursor and change cells' states.</li>
@@ -616,7 +632,12 @@ blockquote {
 </table>
 <p><code>NUM 5</code> / <code>Space</code> - change state of selected cell</p>
 <ol start="3">
-<li>When you have set initial field state press button &quot;Simulation switch&quot; and observe evolution! <strong>You can stop simulation and edit field at any time. But if CPU cursor has processed some cells you would get half-counted generation</strong></li>
+<li>
+<p>When you have set initial field state press button &quot;Simulation switch&quot; and observe evolution! <strong>You can stop simulation and edit field at any time. But if CPU cursor has processed some cells you would get half-counted generation</strong></p>
+</li>
+<li>
+<p>If the next generation is the same as previous simulation will be interrupted with yellow LED-indicator lights up.</p>
+</li>
 </ol>
 <img width="80%" src="./how-to-play.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -638,7 +659,7 @@ blockquote {
 <div class="break"></div>
 <h1 id="assembler">Assembler</h1>
 <h2 id="short-description">Short description</h2>
-<p>Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation]</p>
+<p>Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to <a href="#io-registers-for-changing-field">update generation <code>PSEUDO WRITE</code> register</a></p>
 <p><strong>In ASM code we use <code>asect</code> constants like this:</strong></p>
 <pre class='hljs'><code><div>asect 8
 constSample:
@@ -654,6 +675,7 @@ st r0, r0
 <p><strong>The reason for this action is <a href="#pseudo-write"><code>PSEUDO WRITE</code> mode</a> for some I/O registers</strong></p>
 <h2 id="ram-distribution">RAM distribution</h2>
 <ul>
+<li><code>0xd0</code> - flag for checking non-static generation</li>
 <li><code>0xe0</code> - birth's conditions first byte</li>
 <li><code>0xe8</code> - death's conditions first byte</li>
 </ul>
@@ -666,6 +688,9 @@ birthConditionsRowStart:
 
 asect 0xe8
 deathConditionsRowStart:
+
+asect 0xd0
+isNonStaticGeneration:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -759,7 +784,7 @@ start:
 <div class="break"></div>
 <h3 id="main-cycle">Main cycle</h3>
 <p>This part will repeats while simulations stays on.</p>
-<p>Before cycle we update stable generation's buffer using save signal to <code>IOUpdateGeneration</code> <a href="#io-registers-for-changing-field">referred to Logisim</a>. As a result, we can get correct data for processing cells.</p>
+<p>Before cycle we reset flag in cell <code>isNonStaticGeneration</code> and update stable generation's buffer using save signal to <code>IOUpdateGeneration</code> <a href="#io-registers-for-changing-field">referred to Logisim</a>. As a result, we can get correct data for processing cells.</p>
 <p>Main cycle iterates by <code>Y</code> (row index) in decreasing order <code>[31, 0]</code>.</p>
 <p>We use two optimizations for skipping meaningless iterations:</p>
 <ol>
@@ -773,6 +798,7 @@ start:
 <li>Empty cell is skipped</li>
 </ul>
 <p>For non-zero sum we call subroutine <a href="#processbit"><code>processBit</code></a></p>
+<p><strong>If there are no changed cells (value in <code>isNonStaticGeneration</code> will stay <code>0</code>) we make a conclusion that there is a static generation so we stop simulation <a href="#simulation-rules">using save signal to game mode I/O register</a> and interrupt main cycle.</strong></p>
 <details>
 <summary>Code</summary>
 <pre class='hljs'><code><div>main:
@@ -840,6 +866,10 @@ start:
 				is nz
 					ldi r0, IOInvertBitSignal
 					st r0, r0
+
+					# Set flag for non-static generation to its address (!= 0)
+					ldi r0, isNonStaticGeneration
+					st r0, r0
 				fi
 			fi
 
@@ -856,8 +886,15 @@ start:
 		pop r3
 		dec r3
 	until mi
-# Infinite simulation cycle
-br main
+# Go to main cycle begin if generation isn't static
+ldi r0, isNonStaticGeneration
+ld r0, r0
+tst r0
+bnz main
+# Otherwise reset game mode and go to start
+ldi r0, IOGameMode
+st r0, r0
+br start
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -898,7 +935,7 @@ rts
 <li>This subroutine gets neighbors' sum in <code>r0</code> and centre bit value in <code>r1</code>.</li>
 <li>Depending on bit value it chooses birth or death conditions</li>
 <li>Thanks to <a href="#spreadbyte">spreaded conditions</a> we can simply add to conditions' begin address value <code>r0 - 1</code> and check data by new address</li>
-<li>If there is 1 we should change value in selected cell so <a href="#io-registers-for-changing-field">we send this signal to Logisim</a></li>
+<li>If there is <code>1</code> we should change value in selected cell so <a href="#io-registers-for-changing-field">we send this signal to Logisim</a> and set flag in <code>isNonStaticGeneration</code> to non-zero value.</li>
 </ul>
 <details>
 <summary>Code</summary>
@@ -924,6 +961,10 @@ rts
 	is nz
 		ldi r0, IOInvertBitSignal
 		st r0, r0
+		
+		# Set flag for non-static generation to its address (!= 0)
+		ldi r0, isNonStaticGeneration
+		st r0, r0
 	fi
 rts
 </div></code></pre>
@@ -942,6 +983,10 @@ rts
 			tst r1
 		is nz
 			ldi r0, IOInvertBitSignal
+			st r0, r0
+		
+			# Set flag for non-static generation to its address (!= 0)
+			ldi r0, isNonStaticGeneration
 			st r0, r0
 		fi
 	fi
@@ -985,7 +1030,7 @@ rts
 <div class="break"></div>
 <h2 id="engine-circuit">Engine circuit</h2>
 <p><img src="./main.png" alt="Engine usage"></p>
-<p>This circuit is main one element of game. It handles <a href="#main-signals">all inputs from user</a> and gives finally 32 32-bit rows to matrix and outputs <code>simulation on</code> and <code>selected cell's state</code>.</p>
+<p>This circuit is main one element of game. It handles <a href="#main-signals">all inputs from user</a> and gives finally 32 32-bit rows to matrix and outputs <code>simulation on</code>, <code>selected cell's state</code> and <code>static generation</code>.</p>
 <div class="columns">
 	<img width="58%" src="./engine-inputs-outputs.png">
 	<img width="40%" src="./engine-outputs-2.png">
@@ -1127,7 +1172,7 @@ rts
 <tr>
 <td style="text-align:left"><code>0xf0</code></td>
 <td style="text-align:left"><code>IOGameMode</code></td>
-<td style="text-align:left"><code>READ ONLY</code>      <td rowspan="3"><a href="#simulation-rules">Link</a></td></td>
+<td style="text-align:left"><code>READ ONLY</code> / <code>PSEUDO WRITE</code>      <td rowspan="3"><a href="#simulation-rules">Link</a></td></td>
 <td style="text-align:center"></td>
 </tr>
 <tr>
@@ -1195,10 +1240,11 @@ rts
 <h3 id="list-with-descriptions">List with descriptions</h3>
 <h4 id="simulation-rules">Simulation rules</h4>
 <ul>
-<li><code>0xf0</code> - READ ONLY - when simulation off this register will be <code>0</code>.
+<li><code>0xf0</code> - READ ONLY / PSEUDO WRITE - when simulation off this register will be <code>0</code>.
 <ul>
-<li>Trigger signal on this register will invert its value</li>
+<li>Trigger signal on this register will invert its value and reset static generation flag-register.</li>
 <li>Tunnels from this register are used for control data origins on coordinates bus and some other cases.</li>
+<li>Save signal from CPU will reset this register (turn off simulation) and set static generation flag-register to <code>1</code>. This feature is used in <a href="#main-cycle">CPU main cycle</a> for interrupting simulation</li>
 </ul>
 </li>
 <li><code>0xf1</code> - READ ONLY - birth conditions as bit array</li>
