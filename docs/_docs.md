@@ -133,7 +133,20 @@ We have made 2 powerful improvements and 2 concept changes from the basic techni
 
 **Other components wasn't mentioned in basic technical project. Here you can see our addition for the technical project.**
 
-*Add concept*
+**Concept**
+
+Realization of "Conway game of life" has two main parts, Logisim part and Assembler part.
+
+Logisim part is responsible for:
+
+1. User interface. Player can set his own simulation rules and start a new game or clean the field with special buttons.
+2. Display represented by matrix with size `32x32`. Matrix has two different colors for dead and alive cells.
+3. Counting the neighbours for each cell and return this data to the procces.
+4. Storing current generation and new generation of our simulation.
+
+Assembler part is responsible for:
+
+1. Creating a new generation and if necessary send an inversion signal to Logisim.
 
 *[Back to table of contents](#table-of-contents)*
 
