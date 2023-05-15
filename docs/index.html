@@ -423,7 +423,7 @@ blockquote {
 	}
 	@media print {
 		body {
-			margin: 3cm 2cm 1cm 2cm;
+			margin: 0;
 			padding: 0;
 			font-family: 'Times New Roman';
 		}
@@ -433,16 +433,17 @@ blockquote {
 		}
 
 		@page {
-			size: auto;
-			margin: 0;
+			margin: 2cm 1cm 2cm 3cm;
 			text-align: justify;
 		}
 
-		header {
-			display: none;
+		h2, h3 {
+			margin-bottom: 0.1cm;
 		}
 
-		hr {
+		hr, .break {
+			margin: 0;
+			padding: 0;
 			page-break-after: always;
 		}
 	}
@@ -452,8 +453,7 @@ blockquote {
 <li><a href="#table-of-contents">Table of contents</a></li>
 <li><a href="#problem-statement">Problem statement</a></li>
 <li><a href="#analogues">Analogues</a></li>
-<li><a href="#differences-from-the-basic-technical-task">Differences from the basic technical task</a></li>
-<li><a href="#how-to-play">How to play</a></li>
+<li><a href="#user-guide">User guide</a></li>
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#special-terms">Special terms</a></li>
 <li><a href="#assembler">Assembler</a>
@@ -529,7 +529,7 @@ blockquote {
 </ul>
 </li>
 </ul>
-<hr>
+<div class="break"></div>
 <h1 id="problem-statement">Problem statement</h1>
 <p>Realization of &quot;Conway game of life&quot; using Logisim and Cdm-8.</p>
 <p>&quot;Conway Game of life&quot; is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.</p>
@@ -542,23 +542,6 @@ blockquote {
 <li>Any live cell with two or three neighbours continues to live.</li>
 <li>Any live cell with more than three neighbours dies because of overpopulation.</li>
 </ol>
-<p><strong>Features of our realization:</strong></p>
-<ol>
-<li>Toroidal cycled field with size <code>32*32</code>.</li>
-<li>Extended game rules. Player can set his own simulation rules.</li>
-</ol>
-<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
-<h1 id="analogues">Analogues</h1>
-<p>We have found 3 interesting versions of &quot;Conway game of life&quot; in the Internet</p>
-<ol>
-<li><a href="https://github.com/AlessandroFare/Game-of-Life-Logisim">Version is full madden in Logisim with toroidal field <code>16</code>*<code>16</code>.</a> Works fast but small field doesn't allow construct a lot of setups. For example <a href="https://conwaylife.com/wiki/Pulsar">&quot;Pulsar&quot;</a> or <a href="https://playgameoflife.com/lexicon/copperhead">&quot;Copperhead&quot;</a>:</li>
-<li><a href="https://conwaylife.com/">Web version</a> - fast and convenient. Has endless field. Alas, we do not have similar capacities</li>
-<li>In <a href="https://www.youtube.com/watch?v=FiO6jkNkrb4">this video</a> you can see Turing machine, 1D and 3D version, CPU-like version and so on.</li>
-</ol>
-<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
-<h1 id="differences-from-the-basic-technical-task">Differences from the basic technical task</h1>
 <p>We have made 2 powerful improvements and 2 concept changes from the basic technical task.</p>
 <p><strong>Improvements:</strong></p>
 <ol>
@@ -570,10 +553,19 @@ blockquote {
 <li>We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.</li>
 <li>Video buffer (named <a href="#random-write-buffer">random write buffer</a>) has been made asynchronous. Besides, we have add <code>clear</code> input to it.</li>
 </ol>
-<p><strong>Other components wasn't mentioned in basic technical project</strong></p>
+<p><strong>Other components wasn't mentioned in basic technical project. Here you can see our addition for the technical project.</strong></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
-<h1 id="how-to-play">How to play</h1>
+<div class="break"></div>
+<h1 id="analogues">Analogues</h1>
+<p>We have found 3 interesting versions of &quot;Conway game of life&quot; in the Internet</p>
+<ol>
+<li><a href="https://github.com/AlessandroFare/Game-of-Life-Logisim">Version is full madden in Logisim with toroidal field <code>16</code>*<code>16</code>.</a> Works fast but small field doesn't allow construct a lot of setups. For example <a href="https://conwaylife.com/wiki/Pulsar">&quot;Pulsar&quot;</a> or <a href="https://playgameoflife.com/lexicon/copperhead">&quot;Copperhead&quot;</a>:</li>
+<li><a href="https://conwaylife.com/">Web version</a> - fast and convenient. Has endless field. Alas, we do not have similar capacities</li>
+<li>In <a href="https://www.youtube.com/watch?v=FiO6jkNkrb4">this video</a> you can see Turing machine, 1D and 3D version, CPU-like version and so on.</li>
+</ol>
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<div class="break"></div>
+<h1 id="user-guide">User guide</h1>
 <p><strong>Our version of &quot;Conway game of life&quot; works with universal sets of conditions for birth and survival.</strong></p>
 <ol>
 <li>To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position <code>N</code> means that birth/survival will be fulfilled when cell has <code>N</code> neighbors.</li>
@@ -627,7 +619,7 @@ blockquote {
 </ol>
 <img width="80%" src="./how-to-play.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h1 id="documentation">Documentation</h1>
 <h1 id="special-terms">Special terms</h1>
 <p>There are some special terms that are used in different places below:</p>
@@ -642,7 +634,7 @@ blockquote {
 <li><strong>Significant environment</strong> is an environment which has at least one cell with value <code>1</code> (<strong>including border cells</strong>)</li>
 </ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h1 id="assembler">Assembler</h1>
 <h2 id="short-description">Short description</h2>
 <p>Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation]</p>
@@ -676,7 +668,7 @@ deathConditionsRowStart:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="cells-referring-to-io-regs">Cells referring to I/O regs.</h3>
 <p>Cells from <code>0xf0</code> to <code>0xff</code> are allocated for I/O registers.</p>
 <p><strong>See detailed description in <a href="#short-description-table">Logisim topic</a></strong></p>
@@ -719,7 +711,7 @@ IOUpdateGeneration:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h2 id="code-description">Code description</h2>
 <h3 id="simulation-start">Simulation start</h3>
 <p>This part just waits whilst user presses start button and after it loads game conditions to RAM using <a href="#spreadbyte">spreadByte subroutine</a></p>
@@ -763,7 +755,7 @@ start:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="main-cycle">Main cycle</h3>
 <p>This part will repeats while simulations stays on.</p>
 <p>Before cycle we update stable generation's buffer using save signal to <code>IOUpdateGeneration</code> <a href="#io-registers-for-changing-field">referred to Logisim</a>. As a result, we can get correct data for processing cells.</p>
@@ -868,7 +860,7 @@ br main
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="subroutines">Subroutines</h3>
 <h4 id="spreadbyte"><code>spreadByte</code></h4>
 <ul>
@@ -955,7 +947,7 @@ rts
 ...
 </div></code></pre>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h1 id="logisim">Logisim</h1>
 <h2 id="main-concept">Main concept</h2>
 <p>Here you can see main jobs for Logisim part and logical ordered references for all of them:</p>
@@ -989,7 +981,7 @@ rts
 </li>
 </ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h2 id="engine-circuit">Engine circuit</h2>
 <p><img src="./main.png" alt="Engine usage"></p>
 <p>This circuit is main one element of game. It handles <a href="#main-signals">all inputs from user</a> and gives finally 32 32-bit rows to matrix and outputs <code>simulation on</code> and <code>selected cell's state</code>.</p>
@@ -1028,7 +1020,7 @@ rts
 <p>Therefore we use two multiplexers that choose coordinates source depending on simulation state:
 <img src="./engine-coordinates-bus.png" alt="Coordinates bus"></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h2 id="controls">Controls</h2>
 <h3 id="main-signals">Main signals</h3>
 <img width="66%" src="./main.png">
@@ -1110,7 +1102,7 @@ rts
 <p><strong>Cursor position on matrix is marked by <a href="#blinker">blinker</a></strong></p>
 <p><code>NUM 5</code> / <code>Space</code> - change state of selected cell in <a href="#random-write-buffer">random write buffer</a> using <a href="#rows-bit-invertor">row's bit invertor</a></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h2 id="io-registers">I/O registers</h2>
 <p>I/O bus have minor changes: selection of I/O addresses from CPU <code>addr</code> is detected by <code>less than</code> comparator's output with the second input <code>0xf0</code> (the first I/O cell address)</p>
 <p><img src="./IO-bus.png" alt="I/O bus"></p>
@@ -1241,7 +1233,7 @@ rts
 </ul>
 <p><img src="./IO-change-signals.png" alt="I/O &quot;registers&quot; for changing field"></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h2 id="elements-description">Elements description</h2>
 <h3 id="keyboard-controller">Keyboard controller</h3>
 <p>This circuit considers 7-bit ASCII input as ASCII code and compares it with constants related to some keys and make list of actions:</p>
@@ -1260,7 +1252,7 @@ Keyboard controller gives user signals that are used while simulation if off:</p
 </ul>
 <img width="80%" src="./keyboard-controller-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="random-write-buffer">Random write buffer</h3>
 <p>This circuit saves 32-bit row to one of 32 registers and sends all 32 saved rows to outputs.</p>
 <p>Trigger for registers is decoder with 5-bit selector <code>Y (row index)</code> and <code>Write row</code> enable input. So, buffer will save row from <code>Input row</code> to <code>Y</code>th register on rising of <code>Write row</code>.</p>
@@ -1281,7 +1273,7 @@ In engine we get input row through tunnel from <a href="#rows-bit-invertor">row'
 </ul>
 <p><img src="./RWB-usage.png" alt="Usage in Engine"></p>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <p><span id="stable-generations-buffer"></span></p>
 <h3 id="stable-generation's-buffer">Stable generation's buffer</h3>
 <p>This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input <code>Save generation trigger</code></p>
@@ -1295,7 +1287,7 @@ Buffer update depends on simulation state:</p>
 </ul>
 <img width="66%" src="./SGB-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="row-environment-mask">Row environment mask</h3>
 <p>This circuit gets 1 32-bit row and gives 1 32-bit row where <code>i</code> bit is <code>1</code> when in input row at least one of <code>i-1</code>, <code>i</code>, <code>i+1</code> bits is <code>1</code> (<code>OR</code> gate on splitter outputs). <strong>So, result row let us easily detect bit with significant environment.</strong></p>
 <p><strong>Circuit screenshot and usage:</strong> this circuit is used in <a href="#environment-data-constructor">environment data constructor</a> for detecting next <code>X</code> with significant environment by priority encoder.</p>
@@ -1332,7 +1324,7 @@ Environment data constructor is connected to rows after <a href="#stable-generat
 <p>Y and X go from <a href="#coordinates-bus">coordinates bus</a> but while simulation is off environment data isn't used.</p>
 <img width="66%" src="./env-constructor-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <p><span id="rows-bit-invertor"></span></p>
 <h3 id="row's-bit-invertor">Row's bit invertor</h3>
 <p>This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. <strong>For inversion we use decoder constructed bit mask and XOR</strong></p>
@@ -1346,7 +1338,7 @@ Environment data constructor is connected to rows after <a href="#stable-generat
 <p>Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
 <img width="66%" src="./RBI-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="binary-selector">Binary selector</h3>
 <p>This circuit should choose one of two input values. <code>Binary selector</code> should choose second value if the <code>switch</code> input is <code>1</code> and first value otherwise.</p>
 <p>Inputs:</p>
@@ -1365,7 +1357,7 @@ Binary selector is used in <a href="#blinker">blinker</a> for convenient circuit
 	<img width="45%" src="./binary_selector2.png">
 </div>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<hr>
+<div class="break"></div>
 <h3 id="blinker">Blinker</h3>
 <p><code>Blinker</code> must switch value of <code>X</code> bit in <code>Y</code> row to opposite if the <code>switch</code> input is raised and return new row between others unchanged. <strong>It is important that this circuit should not store new values in itself.</strong></p>
 <p>Inputs:</p>

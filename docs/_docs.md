@@ -66,8 +66,7 @@
 - [Table of contents](#table-of-contents)
 - [Problem statement](#problem-statement)
 - [Analogues](#analogues)
-- [Differences from the basic technical task](#differences-from-the-basic-technical-task)
-- [How to play](#how-to-play)
+- [User guide#](#user-guide)
 - [Documentation](#documentation)
 - [Special terms](#special-terms)
 - [Assembler](#assembler)
@@ -122,9 +121,19 @@
 5. Any live cell with two or three neighbours continues to live.
 6. Any live cell with more than three neighbours dies because of overpopulation.
 
-**Features of our realization:**
-1. Toroidal cycled field with size `32*32`.
-2. Extended game rules. Player can set his own simulation rules.
+We have made 2 powerful improvements and 2 concept changes from the basic technical task.
+
+**Improvements:**
+1. We have composed a toroidal cycled field with size `32*32`
+2. We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from `1` to `8`.
+
+**Concept changes:**
+1. We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
+2. Video buffer (named [random write buffer](#random-write-buffer)) has been made asynchronous. Besides, we have add `clear` input to it.
+
+**Other components wasn't mentioned in basic technical project. Here you can see our addition for the technical project.**
+
+*Add concept*
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -141,24 +150,7 @@ We have found 3 interesting versions of "Conway game of life" in the Internet
 
 <div class="break"></div>
 
-# Differences from the basic technical task
-We have made 2 powerful improvements and 2 concept changes from the basic technical task.
-
-**Improvements:**
-1. We have composed a toroidal cycled field with size `32*32`
-2. We have extended simulation rules choice using 2 8-bit inputs as bit-arrays. Now you can set birth or surviving for any combination of neighbors count from `1` to `8`.
-
-**Concept changes:**
-1. We have decided to use Logisim keyboard handling circuit for cursor moving and cell changing instead of a joystick.
-2. Video buffer (named [random write buffer](#random-write-buffer)) has been made asynchronous. Besides, we have add `clear` input to it.
-
-**Other components wasn't mentioned in basic technical project**
-
-*[Back to table of contents](#table-of-contents)*
-
-<div class="break"></div>
-
-# How to play
+# User guide#
 **Our version of "Conway game of life" works with universal sets of conditions for birth and survival.**
 
 1. To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position `N` means that birth/survival will be fulfilled when cell has `N` neighbors.
@@ -561,7 +553,7 @@ We decided that alive cell should die and death cell cannot birth. Due to specif
 Here you can see main jobs for Logisim part and logical ordered references for all of them:
 1. Communication with user
    1. [Controls](#controls) 
-   2. [Game screen](#how-to-play)
+   2. [Game screen](#user-guide)
    3. [Blinker](#blinker) for pretty cursor visualization
 2. Storing game's data
    1. [Random write buffer](#random-write-buffer)
