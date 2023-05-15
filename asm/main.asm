@@ -5,6 +5,9 @@ birthConditionsRowStart:
 asect 0xe8
 deathConditionsRowStart:
 
+asect 0xd0
+isNonStaticGeneration:
+
 # Asects for I/O registers
 asect 0xf0
 IOGameMode:
@@ -86,15 +89,18 @@ processBit:
 	is nz
 		ldi r0, IOInvertBitSignal
 		st r0, r0
+		
+		# Set flag for non-static generation to its address (!= 0)
+		ldi r0, isNonStaticGeneration
+		st r0, r0
 	fi
 rts
 
 #===============================
 
 start:
-	# Move SP before I/O and field addresses
-	setsp 0xe0
-
+	# Move SP before destributed cells
+	setsp 0xd0
 
 	# Waiting for IOGameMode I/O reg. != 0
 	ldi r1, IOGameMode
@@ -115,6 +121,11 @@ start:
 
 main:
 	
+	# Reset flag for non-static
+	ldi r0, isNonStaticGeneration
+	ldi r1, 0
+	st r0, r1
+
 	# Update stable generation's buffer to get new data from env. data constructor
 	ldi r0, IOUpdateGeneration
 	st r0, r0
@@ -178,6 +189,10 @@ main:
 				is nz
 					ldi r0, IOInvertBitSignal
 					st r0, r0
+
+					# Set flag for non-static generation to its address (!= 0)
+					ldi r0, isNonStaticGeneration
+					st r0, r0
 				fi
 			fi
 
@@ -194,8 +209,15 @@ main:
 		pop r3
 		dec r3
 	until mi
-# Infinite simulation cycle
-br main
+# Go to main cycle begin if generation isn't static
+ldi r0, isNonStaticGeneration
+ld r0, r0
+tst r0
+bnz main
+# Otherwise reset game mode and go to start
+ldi r0, IOGameMode
+st r0, r0
+br start
 
 halt
 end
