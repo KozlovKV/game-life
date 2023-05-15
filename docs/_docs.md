@@ -140,14 +140,14 @@ Realization of "Conway game of life" has two main parts, Logisim part and Assemb
 Logisim part is responsible for:
 
 1. User interface. Player can set his own simulation rules and start a new game or clean the field with special buttons.
-2. Display represented by matrix with size `32x32`. Matrix has two different colors for dead and alive cells.
+2. Display. Display represented by matrix with size `32x32`. Matrix has two different colors for dead and alive cells.
 3. Constructing environment data for current cell.
 4. Storing current generation and new generation of our simulation.
 
 Assembler part is responsible for:
 
 1. Spread simulation rules.
-2. Iterates by Y from 0 to 31 and skip null rows.
+2. Iterates by all rows and skip null rows.
 3. Iterates by cells in row Y which have significant environment.
 4. Get cell's environment data and send invert signal if it necessary.
 
