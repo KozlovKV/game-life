@@ -66,7 +66,7 @@
 - [Table of contents](#table-of-contents)
 - [Problem statement](#problem-statement)
 - [Analogues](#analogues)
-- [User guide#](#user-guide)
+- [User guide](#user-guide)
 - [Documentation](#documentation)
 - [Special terms](#special-terms)
 - [Assembler](#assembler)
@@ -109,17 +109,17 @@
 <div class="break"></div>
 
 # Problem statement
- Realization of "Conway game of life" using Logisim and Cdm-8.
+Realization of "Conway's game of life" using Logisim and Cdm-8.
 
- "Conway Game of life" is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.
+"Conway's game of life" is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.
 
- **Rules:**
+**Rules:**
 1. The field of "Game of life" is a grid of square cells. Each cell has two conditions it can be live or dead.
-2. Every cell has 8 neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent.
-3. Any live cell with less than two neighbours dies because of underpopulation.
-4. Any dead cell with three neighbours becomes a live.
-5. Any live cell with two or three neighbours continues to live.
-6. Any live cell with more than three neighbours dies because of overpopulation.
+2. Every cell has 8 neighbors, which are the cells that are horizontally, vertically, or diagonally adjacent.
+3. Any live cell with less than two neighbors dies because of underpopulation.
+4. Any dead cell with three neighbors becomes a live.
+5. Any live cell with two or three neighbors continues to live.
+6. Any live cell with more than three neighbors dies because of overpopulation.
 
 We have made 2 powerful improvements and 2 concept changes from the basic technical task.
 
@@ -135,7 +135,7 @@ We have made 2 powerful improvements and 2 concept changes from the basic techni
 
 **Concept**
 
-Realization of "Conway game of life" has two main parts, Logisim part and Assembler part.
+Realization of "Conway's game of life" has two main parts, Logisim part and Assembler part.
 
 Logisim part is responsible for:
 
@@ -144,19 +144,20 @@ Logisim part is responsible for:
 3. Constructing environment data for current cell.
 4. Storing current generation and new generation of our simulation.
 
-Assembler part is responsible for:
+Assembler:
 
-1. Spread simulation rules.
+1. Spreads simulation rules.
 2. Iterates by all rows and skip null rows.
-3. Iterates by cells in row Y which have significant environment.
-4. Get cell's environment data and send invert signal if it necessary.
+3. Iterates by cells in every row which have significant environment.
+4. Gets cell's environment data and sends invert signal if it is necessary.
+5. Interrupts field processing if static generation was reached.
 
 *[Back to table of contents](#table-of-contents)*
 
 <div class="break"></div>
 
 # Analogues
-We have found 3 interesting versions of "Conway game of life" in the Internet
+We have found 3 interesting versions of "Conway's game of life" in the Internet
 
 1. [Version is full madden in Logisim with toroidal field `16`*`16`.](https://github.com/AlessandroFare/Game-of-Life-Logisim) Works fast but small field doesn't allow construct a lot of setups. For example ["Pulsar"](https://conwaylife.com/wiki/Pulsar) or ["Copperhead"](https://playgameoflife.com/lexicon/copperhead):
 2. [Web version](https://conwaylife.com/) - fast and convenient. Has endless field. Alas, we do not have similar capacities
@@ -166,8 +167,8 @@ We have found 3 interesting versions of "Conway game of life" in the Internet
 
 <div class="break"></div>
 
-# User guide#
-**Our version of "Conway game of life" works with universal sets of conditions for birth and survival.**
+# User guide
+**Our version of "Conway's game of life" works with universal sets of conditions for birth and survival.**
 
 1. To set conditions switch bits in birth/survival 8-bit inputs where value 1 on position `N` means that birth/survival will be fulfilled when cell has `N` neighbors.
 2. After this click on keyboard element and use one of two keyboard layouts to move blinking cursor and change cells' states.
@@ -186,6 +187,8 @@ KEY           | DIRECTION    |
 `NUM 5` / `Space` - change state of selected cell
 
 3. When you have set initial field state press button "Simulation switch" and observe evolution! **You can stop simulation and edit field at any time. But if CPU cursor has processed some cells you would get half-counted generation**
+
+4. If the next generation is the same as previous simulation will be interrupted with yellow LED-indicator lights up.
 
 <img width="80%" src="./how-to-play.png">
 
@@ -208,7 +211,7 @@ There are some special terms that are used in different places below:
 
 # Assembler
 ## Short description
-Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation]
+Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation `PSEUDO WRITE` register](#io-registers-for-changing-field)
 
 **In ASM code we use `asect` constants like this:**
 ```
@@ -228,6 +231,7 @@ st r0, r0
 **The reason for this action is [`PSEUDO WRITE` mode](#pseudo-write) for some I/O registers**
 
 ## RAM distribution
+- `0xd0` - flag for checking non-static generation
 - `0xe0` - birth's conditions first byte
 - `0xe8` - death's conditions first byte
 
@@ -243,6 +247,9 @@ birthConditionsRowStart:
 
 asect 0xe8
 deathConditionsRowStart:
+
+asect 0xd0
+isNonStaticGeneration:
 ```
 </details>
 
@@ -356,7 +363,7 @@ start:
 
 This part will repeats while simulations stays on.
 
-Before cycle we update stable generation's buffer using save signal to `IOUpdateGeneration` [referred to Logisim](#io-registers-for-changing-field). As a result, we can get correct data for processing cells.
+Before cycle we reset flag in cell `isNonStaticGeneration` and update stable generation's buffer using save signal to `IOUpdateGeneration` [referred to Logisim](#io-registers-for-changing-field). As a result, we can get correct data for processing cells.
 
 Main cycle iterates by `Y` (row index) in decreasing order `[31, 0]`.
 
@@ -371,6 +378,8 @@ For zero sum:
 - Empty cell is skipped
 
 For non-zero sum we call subroutine [`processBit`](#processbit)
+
+**If there are no changed cells (value in `isNonStaticGeneration` will stay `0`) we make a conclusion that there is a static generation so we stop simulation [using save signal to game mode I/O register](#simulation-rules) and interrupt main cycle.**
 
 <details>
 <summary>Code</summary>
@@ -441,6 +450,10 @@ main:
 				is nz
 					ldi r0, IOInvertBitSignal
 					st r0, r0
+
+					# Set flag for non-static generation to its address (!= 0)
+					ldi r0, isNonStaticGeneration
+					st r0, r0
 				fi
 			fi
 
@@ -457,8 +470,15 @@ main:
 		pop r3
 		dec r3
 	until mi
-# Infinite simulation cycle
-br main
+# Go to main cycle begin if generation isn't static
+ldi r0, isNonStaticGeneration
+ld r0, r0
+tst r0
+bnz main
+# Otherwise reset game mode and go to start
+ldi r0, IOGameMode
+st r0, r0
+br start
 ```
 
 </details>
@@ -504,7 +524,7 @@ rts
 - This subroutine gets neighbors' sum in `r0` and centre bit value in `r1`.
 - Depending on bit value it chooses birth or death conditions
 - Thanks to [spreaded conditions](#spreadbyte) we can simply add to conditions' begin address value `r0 - 1` and check data by new address
-- If there is 1 we should change value in selected cell so [we send this signal to Logisim](#io-registers-for-changing-field)
+- If there is `1` we should change value in selected cell so [we send this signal to Logisim](#io-registers-for-changing-field) and set flag in `isNonStaticGeneration` to non-zero value.
 
 <details>
 <summary>Code</summary>
@@ -532,11 +552,14 @@ processBit:
 	is nz
 		ldi r0, IOInvertBitSignal
 		st r0, r0
+		
+		# Set flag for non-static generation to its address (!= 0)
+		ldi r0, isNonStaticGeneration
+		st r0, r0
 	fi
 rts
 ```
 </details>
-
 
 *What to do if there is no neighbors?*
 
@@ -554,6 +577,10 @@ We decided that alive cell should die and death cell cannot birth. Due to specif
 			tst r1
 		is nz
 			ldi r0, IOInvertBitSignal
+			st r0, r0
+		
+			# Set flag for non-static generation to its address (!= 0)
+			ldi r0, isNonStaticGeneration
 			st r0, r0
 		fi
 	fi
@@ -590,7 +617,7 @@ Here you can see main jobs for Logisim part and logical ordered references for a
 ## Engine circuit
 ![Engine usage](./main.png)
 
-This circuit is main one element of game. It handles [all inputs from user](#main-signals) and gives finally 32 32-bit rows to matrix and outputs `simulation on` and `selected cell's state`.
+This circuit is main one element of game. It handles [all inputs from user](#main-signals) and gives finally 32 32-bit rows to matrix and outputs `simulation on`, `selected cell's state` and `static generation`.
 
 <div class="columns">
 	<img width="58%" src="./engine-inputs-outputs.png">
@@ -681,7 +708,7 @@ Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write 
 ### Short description table
 CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
 :--           | :--                  | :--            | :-:
-`0xf0`        | `IOGameMode`         | `READ ONLY`      <td rowspan="3">[Link](#simulation-rules)</td>
+`0xf0`        | `IOGameMode`         | `READ ONLY` / `PSEUDO WRITE`      <td rowspan="3">[Link](#simulation-rules)</td>
 `0xf1`        | `IOBirthConditions`  | `READ ONLY`    |
 `0xf2`        | `IODeathConditions`  | `READ ONLY`    |
 `0xf3`        | `IOY`                | `WRITE ONLY`     <td rowspan="2">[Link](#processed-cell)</td>
@@ -689,15 +716,16 @@ CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
 `0xf5`        | `IOBit`              | `READ ONLY`      <td rowspan="4">[Link](#io-registers-with-environment-data)</td>
 `0xf6`        | `IOEnvSum`           | `READ ONLY`    |
 `0xf7`        | `IONullRowsEnv`      | `READ ONLY`    |
-`0xf8`        | `IONextSignificantX`  | `READ ONLY`    |
+`0xf8`        | `IONextSignificantX` | `READ ONLY`    |
 `0xf9`        | `IOInvertBitSignal`  | `PSEUDO WRITE`   <td rowspan="2">[Link](#io-registers-for-changing-field)</td>
 `0xfa`        | `IOUpdateGeneration` | `PSEUDO WRITE` |
 
 ### List with descriptions
 #### Simulation rules
-- `0xf0` - READ ONLY - when simulation off this register will be `0`.
-  - Trigger signal on this register will invert its value 
+- `0xf0` - READ ONLY / PSEUDO WRITE - when simulation off this register will be `0`.
+  - Trigger signal on this register will invert its value and reset static generation flag-register.
   - Tunnels from this register are used for control data origins on coordinates bus and some other cases.
+  - Save signal from CPU will reset this register (turn off simulation) and set static generation flag-register to `1`. This feature is used in [CPU main cycle](#main-cycle) for interrupting simulation
 - `0xf1` - READ ONLY - birth conditions as bit array
 - `0xf2` - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input
 
