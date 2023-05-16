@@ -1250,14 +1250,14 @@ rts
 <li><code>0xf1</code> - READ ONLY - birth conditions as bit array</li>
 <li><code>0xf2</code> - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input</li>
 </ul>
-<p><img src="./IO-rules.png" alt="Simulation rules"></p>
+<img src="./IO-rules.png" alt="I/O registers with game rules and state">
 <h4 id="processed-cell">Processed cell</h4>
 <p>Coordinates from these registers are used in all Logisim components to tell what cell CPU is processing. When simulation on they capture coordinates bus:</p>
 <ul>
 <li><code>0xf3</code> - WRITE ONLY - Y coordinate (processing row)</li>
 <li><code>0xf4</code> - WRITE ONLY - X coordinate (bit index in row)</li>
 </ul>
-<p><img src="./IO-coords.png" alt="Coordinates registers"></p>
+<img src="./IO-coords.png" alt="IO-register for coordinates">
 <h4 id="io-registers-with-environment-data">I/O &quot;registers&quot; with environment data</h4>
 <p>These &quot;registers&quot; aren't exist. There are just tunnels which are connected to <a href="#environment-data-constructor">environment constructor outputs</a>:</p>
 <ul>
@@ -1271,8 +1271,10 @@ rts
 </ul>
 </li>
 </ul>
-<p><img src="./IO-env-1.png" alt="I/O &quot;registers&quot; with environment data 1">
-<img src="./IO-env-2.png" alt="I/O &quot;registers&quot; with environment data 2"></p>
+<div>
+	<img src="./IO-env-1.png" alt="Environment I/O registers 1">
+	<img src="./IO-env-2.png" alt="Environment I/O registers 2">
+</div>
 <h4 id="io-registers-for-changing-field">I/O &quot;registers&quot; for changing field</h4>
 <ul>
 <li><code>0xf9</code> - PSEUDO WRITE - save signal to this cell will trigger <a href="#random-write-buffer">random write buffer</a> and change cell <code>(Y, X)</code> using <a href="#rows-bit-invertor">row's bit invertor</a></li>

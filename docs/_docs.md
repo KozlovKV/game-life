@@ -729,14 +729,15 @@ CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
 - `0xf1` - READ ONLY - birth conditions as bit array
 - `0xf2` - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input
 
-![Simulation rules](./IO-rules.png)
+<img src="./IO-rules.png" alt="I/O registers with game rules and state">
 
 #### Processed cell
 Coordinates from these registers are used in all Logisim components to tell what cell CPU is processing. When simulation on they capture coordinates bus:
 - `0xf3` - WRITE ONLY - Y coordinate (processing row)
 - `0xf4` - WRITE ONLY - X coordinate (bit index in row)
 
-![Coordinates registers](./IO-coords.png)
+<img src="./IO-coords.png" alt="IO-register for coordinates">
+
 
 #### I/O "registers" with environment data
 These "registers" aren't exist. There are just tunnels which are connected to [environment constructor outputs](#environment-data-constructor):
@@ -747,8 +748,10 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
   - Cell `(Y, X)` isn't `0`
   - sum of bits around cell `(Y, X)` greater than `0`
 
-![I/O "registers" with environment data 1](./IO-env-1.png)
-![I/O "registers" with environment data 2](./IO-env-2.png)
+<div>
+	<img src="./IO-env-1.png" alt="Environment I/O registers 1">
+	<img src="./IO-env-2.png" alt="Environment I/O registers 2">
+</div>
 
 #### I/O "registers" for changing field
 - `0xf9` - PSEUDO WRITE - save signal to this cell will trigger [random write buffer](#random-write-buffer) and change cell `(Y, X)` using [row's bit invertor](#rows-bit-invertor)
