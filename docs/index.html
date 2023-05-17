@@ -1029,7 +1029,7 @@ rts
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h2 id="engine-circuit">Engine circuit</h2>
-<p><img src="./main.png" alt="Engine usage"></p>
+<img src="./main.png" width="99%" alt="Engine usage">
 <p>This circuit is main one element of game. It handles <a href="#main-signals">all inputs from user</a> and gives finally 32 32-bit rows to matrix and outputs <code>simulation on</code>, <code>selected cell's state</code> and <code>static generation</code>.</p>
 <div class="columns">
 	<img width="58%" src="./engine-inputs-outputs.png">
@@ -1039,7 +1039,9 @@ rts
 <ol>
 <li>Most of all circuits below with connected to them <a href="#coordinates-bus">coordinates bus</a> (<em>excepting <a href="#binary-selector">binary selector</a> and <a href="#row-environment-mask">row environment mask</a></em>):
 <ul>
-<li><img src="./engine-subcircuits.png" alt="Subcircuits in engine"></li>
+<li>
+<img src="./engine-subcircuits.png" width="99%" alt="Subcircuits in engine">
+</li>
 </ul>
 </li>
 <li>CdM-8 integration scheme with Harvard architecture:
@@ -1063,8 +1065,8 @@ rts
 <li>When simulation off they go from <a href="#keyboard-controller">keyboard controller</a> which handles <a href="#controls">user's inputs</a></li>
 <li>When simulation on they go from <a href="#processed-cell">2 I/O registers</a></li>
 </ul>
-<p>Therefore we use two multiplexers that choose coordinates source depending on simulation state:
-<img src="./engine-coordinates-bus.png" alt="Coordinates bus"></p>
+<p>Therefore we use two multiplexers that choose coordinates source depending on simulation state:</p>
+<img src="./engine-coordinates-bus.png" width="99%" alt="Coordinates bus">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h2 id="controls">Controls</h2>
@@ -1151,7 +1153,7 @@ rts
 <div class="break"></div>
 <h2 id="io-registers">I/O registers</h2>
 <p>I/O bus have minor changes: selection of I/O addresses from CPU <code>addr</code> is detected by <code>less than</code> comparator's output with the second input <code>0xf0</code> (the first I/O cell address)</p>
-<p><img src="./IO-bus.png" alt="I/O bus"></p>
+<img src="./IO-bus.png" width="99%" alt="I/O bus">
 <p><span id="io-registers-types"></span></p>
 <h3 id="io-registers'-types">I/O registers' types</h3>
 <p><strong>All types' names are regarding the CPU directions</strong></p>
@@ -1250,14 +1252,14 @@ rts
 <li><code>0xf1</code> - READ ONLY - birth conditions as bit array</li>
 <li><code>0xf2</code> - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input</li>
 </ul>
-<img src="./IO-rules.png" alt="I/O registers with game rules and state">
+<img src="./IO-rules.png" width="99%" alt="I/O registers with game rules and state">
 <h4 id="processed-cell">Processed cell</h4>
 <p>Coordinates from these registers are used in all Logisim components to tell what cell CPU is processing. When simulation on they capture coordinates bus:</p>
 <ul>
 <li><code>0xf3</code> - WRITE ONLY - Y coordinate (processing row)</li>
 <li><code>0xf4</code> - WRITE ONLY - X coordinate (bit index in row)</li>
 </ul>
-<img src="./IO-coords.png" alt="IO-register for coordinates">
+<img src="./IO-coords.png" width="99%" alt="IO-register for coordinates">
 <h4 id="io-registers-with-environment-data">I/O &quot;registers&quot; with environment data</h4>
 <p>These &quot;registers&quot; aren't exist. There are just tunnels which are connected to <a href="#environment-data-constructor">environment constructor outputs</a>:</p>
 <ul>
@@ -1271,16 +1273,14 @@ rts
 </ul>
 </li>
 </ul>
-<div>
-	<img src="./IO-env-1.png" alt="Environment I/O registers 1">
-	<img src="./IO-env-2.png" alt="Environment I/O registers 2">
-</div>
+<img src="./IO-env-1.png" width="99%" alt="Environment I/O registers 1">
+<img src="./IO-env-2.png" width="99%" alt="Environment I/O registers 2">
 <h4 id="io-registers-for-changing-field">I/O &quot;registers&quot; for changing field</h4>
 <ul>
 <li><code>0xf9</code> - PSEUDO WRITE - save signal to this cell will trigger <a href="#random-write-buffer">random write buffer</a> and change cell <code>(Y, X)</code> using <a href="#rows-bit-invertor">row's bit invertor</a></li>
 <li><code>0xfa</code> - PSEUDO WRITE - save signal to this cell will update <a href="#stable-generations-buffer">generation buffer</a></li>
 </ul>
-<p><img src="./IO-change-signals.png" alt="I/O &quot;registers&quot; for changing field"></p>
+<img src="./IO-change-signals.png" width="99%" alt="I/O 'registers' for changing field">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h2 id="elements-description">Elements description</h2>
@@ -1292,7 +1292,7 @@ rts
 </ul>
 <p>See keyboard layouts <a href="#keyboard-layouts">here</a></p>
 <p><strong>Circuit screenshot:</strong></p>
-<p><img src="./keyboard-controller-circuit.png" alt="Keyboard controller circuit"></p>
+<img src="./keyboard-controller-circuit.png" width="99%" alt="Keyboard controller circuit">
 <p><strong>Usage in Engine circuit:</strong>
 Keyboard controller gives user signals that are used while simulation if off:</p>
 <ul>
@@ -1320,7 +1320,7 @@ In engine we get input row through tunnel from <a href="#rows-bit-invertor">row'
 <li>From <a href="#keyboard-controller">keyboard controller</a> when simulation is off</li>
 <li>From <a href="#io-registers-for-changing-field">Register <code>0xf9</code></a> when simulation is on</li>
 </ul>
-<p><img src="./RWB-usage.png" alt="Usage in Engine"></p>
+<img src="./RWB-usage.png" width="99%" alt="Usage in Engine">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <p><span id="stable-generations-buffer"></span></p>
@@ -1365,8 +1365,8 @@ Buffer update depends on simulation state:</p>
 </li>
 </ol>
 <p><strong>Circuit screenshots:</strong></p>
-<p><img src="./env-constructor-circuit-1.png" alt="Screen 1"></p>
-<p><img src="./env-constructor-circuit-2.png" alt="Screen 2"></p>
+<img src="./env-constructor-circuit-1.png" width="99%" alt="Environment data constructor 1">
+<img src="./env-constructor-circuit-2.png" width="99%" alt="Environment data constructor 2">
 <p><strong>Usage in Engine circuit:</strong>
 Environment data constructor is connected to rows after <a href="#stable-generations-buffer">stable generation's buffer</a> to ensure that CPU works with stable generation.</p>
 <p>All outputs go through tunnels to <a href="#io-registers-with-environment-data">I/O registers</a> that are used in <a href="#main-cycle">ASM main cycle</a></p>
@@ -1426,7 +1426,7 @@ Binary selector is used in <a href="#blinker">blinker</a> for convenient circuit
 	<img width="55%" src="./blinker2.png">
 </div>
 <p><strong>Usage in Engine circuit:</strong>
-In <code>switch</code> handles clock signal. Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
+Input <code>switch</code> handles clock signal. Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
 <img width="50%" src="./blinker3.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 

@@ -615,7 +615,7 @@ Here you can see main jobs for Logisim part and logical ordered references for a
 <div class="break"></div>
 
 ## Engine circuit
-![Engine usage](./main.png)
+<img src="./main.png" width="99%" alt="Engine usage">
 
 This circuit is main one element of game. It handles [all inputs from user](#main-signals) and gives finally 32 32-bit rows to matrix and outputs `simulation on`, `selected cell's state` and `static generation`.
 
@@ -626,7 +626,7 @@ This circuit is main one element of game. It handles [all inputs from user](#mai
 
 This circuit contains:
 1. Most of all circuits below with connected to them [coordinates bus](#coordinates-bus) (*excepting [binary selector](#binary-selector) and [row environment mask](#row-environment-mask)*):
-   - ![Subcircuits in engine](./engine-subcircuits.png)
+   - <img src="./engine-subcircuits.png" width="99%" alt="Subcircuits in engine">
 2. CdM-8 integration scheme with Harvard architecture: 
    - <img width="70%" src="./engine-cdm8-integration.png">
 3. All [I/O registers](#io-registers): 
@@ -638,7 +638,8 @@ Most of circuits work with coordinates `Y` (row index) and `X` (bit index) and c
 - When simulation on they go from [2 I/O registers](#processed-cell)
 
 Therefore we use two multiplexers that choose coordinates source depending on simulation state:
-![Coordinates bus](./engine-coordinates-bus.png)
+
+<img src="./engine-coordinates-bus.png" width="99%" alt="Coordinates bus">
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -691,7 +692,7 @@ KEY           | DIRECTION    | X DELTA | Y DELTA
 ## I/O registers
 I/O bus have minor changes: selection of I/O addresses from CPU `addr` is detected by `less than` comparator's output with the second input `0xf0` (the first I/O cell address)
 
-![I/O bus](./IO-bus.png)
+<img src="./IO-bus.png" width="99%" alt="I/O bus">
 
 <span id="io-registers-types"></span>
 
@@ -729,14 +730,14 @@ CELL ADDR.    | ASSEMBLER LABEL      | DATA DIRECTION | EXPLANATION TOPIC
 - `0xf1` - READ ONLY - birth conditions as bit array
 - `0xf2` - READ ONLY - death conditions as bit array. This value is inverted version from survival conditions user input
 
-<img src="./IO-rules.png" alt="I/O registers with game rules and state">
+<img src="./IO-rules.png" width="99%" alt="I/O registers with game rules and state">
 
 #### Processed cell
 Coordinates from these registers are used in all Logisim components to tell what cell CPU is processing. When simulation on they capture coordinates bus:
 - `0xf3` - WRITE ONLY - Y coordinate (processing row)
 - `0xf4` - WRITE ONLY - X coordinate (bit index in row)
 
-<img src="./IO-coords.png" alt="IO-register for coordinates">
+<img src="./IO-coords.png" width="99%" alt="IO-register for coordinates">
 
 
 #### I/O "registers" with environment data
@@ -748,16 +749,14 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
   - Cell `(Y, X)` isn't `0`
   - sum of bits around cell `(Y, X)` greater than `0`
 
-<div>
-	<img src="./IO-env-1.png" alt="Environment I/O registers 1">
-	<img src="./IO-env-2.png" alt="Environment I/O registers 2">
-</div>
+<img src="./IO-env-1.png" width="99%" alt="Environment I/O registers 1">
+<img src="./IO-env-2.png" width="99%" alt="Environment I/O registers 2">
 
 #### I/O "registers" for changing field
 - `0xf9` - PSEUDO WRITE - save signal to this cell will trigger [random write buffer](#random-write-buffer) and change cell `(Y, X)` using [row's bit invertor](#rows-bit-invertor)
 - `0xfa` - PSEUDO WRITE - save signal to this cell will update [generation buffer](#stable-generations-buffer)
 
-![I/O "registers" for changing field](./IO-change-signals.png)
+<img src="./IO-change-signals.png" width="99%" alt="I/O 'registers' for changing field">
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -773,7 +772,7 @@ See keyboard layouts [here](#keyboard-layouts)
 
 **Circuit screenshot:**
 
-![Keyboard controller circuit](./keyboard-controller-circuit.png)
+<img src="./keyboard-controller-circuit.png" width="99%" alt="Keyboard controller circuit">
 
 **Usage in Engine circuit:**
 Keyboard controller gives user signals that are used while simulation if off:
@@ -811,7 +810,7 @@ Write row signal goes:
 - From [keyboard controller](#keyboard-controller) when simulation is off
 - From [Register `0xf9`](#io-registers-for-changing-field) when simulation is on
 
-![Usage in Engine](./RWB-usage.png)
+<img src="./RWB-usage.png" width="99%" alt="Usage in Engine">
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -863,9 +862,9 @@ It has 32 32-bit inputs for rows and 5-bit `Y`, `X` inputs and works by this ste
 
 **Circuit screenshots:**
 
-![Screen 1](./env-constructor-circuit-1.png)
+<img src="./env-constructor-circuit-1.png" width="99%" alt="Environment data constructor 1">
 
-![Screen 2](./env-constructor-circuit-2.png)
+<img src="./env-constructor-circuit-2.png" width="99%" alt="Environment data constructor 2">
 
 **Usage in Engine circuit:**
 Environment data constructor is connected to rows after [stable generation's buffer](#stable-generations-buffer) to ensure that CPU works with stable generation.
@@ -945,7 +944,7 @@ Outputs:
 </div>
 
 **Usage in Engine circuit:**
-In `switch` handles clock signal. Y and X go from [coordinates bus](#coordinates-bus)
+Input `switch` handles clock signal. Y and X go from [coordinates bus](#coordinates-bus)
 
 <img width="50%" src="./blinker3.png">
 
