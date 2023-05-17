@@ -64,7 +64,9 @@
 
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [Introduction](#introduction)
 - [Problem statement](#problem-statement)
+	- [Extension of technical project](#extension-of-technical-project)
 - [Analogues](#analogues)
 - [User guide](#user-guide)
 - [Documentation](#documentation)
@@ -105,10 +107,11 @@
 		- [Row's bit invertor](#rows-bit-invertor)
 		- [Binary selector](#binary-selector)
 		- [Blinker](#blinker)
+- [Conclusion](#conclusion)
 
 <div class="break"></div>
 
-# Problem statement
+# Introduction
 Realization of "Conway's game of life" using Logisim and Cdm-8.
 
 "Conway's game of life" is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.
@@ -121,6 +124,9 @@ Realization of "Conway's game of life" using Logisim and Cdm-8.
 5. Any live cell with two or three neighbors continues to live.
 6. Any live cell with more than three neighbors dies because of overpopulation.
 
+<div class="break"></div>
+
+# Problem statement
 We have made 2 powerful improvements and 2 concept changes from the basic technical task.
 
 **Improvements:**
@@ -133,7 +139,7 @@ We have made 2 powerful improvements and 2 concept changes from the basic techni
 
 **Other components wasn't mentioned in basic technical project. Here you can see our addition for the technical project.**
 
-**Concept**
+## Extension of technical project
 
 Realization of "Conway's game of life" has two main parts, Logisim part and Assembler part.
 
@@ -949,3 +955,8 @@ Input `switch` handles clock signal. Y and X go from [coordinates bus](#coordina
 <img width="50%" src="./blinker3.png">
 
 *[Back to table of contents](#table-of-contents)*
+
+<div class="break"></div>
+
+# Conclusion
+*soon*
