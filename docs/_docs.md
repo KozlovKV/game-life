@@ -1,6 +1,7 @@
 <style>
 	body {
-		font-size: 16px;
+		font-size: 14pt;
+		line-height: 1.5;
 		padding: 40px;
 	}
 	h1 {
@@ -621,7 +622,7 @@ Here you can see main jobs for Logisim part and logical ordered references for a
 <div class="break"></div>
 
 ## Engine circuit
-<img src="./main.png" width="99%" alt="Engine usage">
+<img src="./main.png" width="80%" alt="Engine usage">
 
 This circuit is main one element of game. It handles [all inputs from user](#main-signals) and gives finally 32 32-bit rows to matrix and outputs `simulation on`, `selected cell's state` and `static generation`.
 
@@ -959,4 +960,6 @@ Input `switch` handles clock signal. Y and X go from [coordinates bus](#coordina
 <div class="break"></div>
 
 # Conclusion
-*soon*
+The version described above works in direct proportion to the number of cells. So, for the large setups one frame processing can take up to 200 seconds. It's long, but there are no ways for the significant optimization saving this architecture. 
+
+Therefore, we declare that we have done optimally working version of "Conway's game of life" using Logisim and CdM-8 as technical stack.

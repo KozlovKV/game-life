@@ -387,7 +387,8 @@ blockquote {
 <body>
 <style>
 	body {
-		font-size: 16px;
+		font-size: 14pt;
+		line-height: 1.5;
 		padding: 40px;
 	}
 	h1 {
@@ -1037,7 +1038,7 @@ rts
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h2 id="engine-circuit">Engine circuit</h2>
-<img src="./main.png" width="99%" alt="Engine usage">
+<img src="./main.png" width="80%" alt="Engine usage">
 <p>This circuit is main one element of game. It handles <a href="#main-signals">all inputs from user</a> and gives finally 32 32-bit rows to matrix and outputs <code>simulation on</code>, <code>selected cell's state</code> and <code>static generation</code>.</p>
 <div class="columns">
 	<img width="58%" src="./engine-inputs-outputs.png">
@@ -1439,7 +1440,8 @@ Input <code>switch</code> handles clock signal. Y and X go from <a href="#coordi
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h1 id="conclusion">Conclusion</h1>
-<p><em>soon</em></p>
+<p>The version described above works in direct proportion to the number of cells. So, for the large setups one frame processing can take up to 200 seconds. It's long, but there are no ways for the significant optimization saving this architecture.</p>
+<p>Therefore, we declare that we have done optimally working version of &quot;Conway's game of life&quot; using Logisim and CdM-8 as technical stack.</p>
 
 </body>
 </html>
