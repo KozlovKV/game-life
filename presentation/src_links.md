@@ -1,0 +1,2 @@
+- [Gifs](https://disk.yandex.ru/d/yVGkvSCPgsKaAA)
+- [Videos](https://disk.yandex.ru/d/qkfQydAP1Bg7OA)
