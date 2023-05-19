@@ -13,4 +13,4 @@ Created by *Kozlov Kirill* and *Palking Egor* (group `22215`) in 2023.
 
 ## Presentation
 - [Google slides version](https://docs.google.com/presentation/d/1QZTgbPYlnSVkZEdg4eGlc-LxBSFEysygqDjBKPxbbGE/edit?usp=sharing)
-- [Power point dump](./presentation/Game-life%2022215_%20Kozlov%20Kirill%20and%20Palkin%20Egor.pptx)
+- [Power point dump and sources]()
