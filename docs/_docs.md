@@ -115,7 +115,7 @@
 # Introduction
 Realization of "Conway's game of life" using Logisim and Cdm-8.
 
-"Conway's game of life" is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.
+"Conway's game of life" is a cellural automaton. This is an auto-playable game. Player set an initial condition and then only can observe the development.
 
 **Rules:**
 1. The field of "Game of life" is a grid of square cells. Each cell has two conditions it can be live or dead.
@@ -168,7 +168,7 @@ We have found 3 interesting versions of "Conway's game of life" in the Internet
 
 1. [Version is full madden in Logisim with toroidal field `16`*`16`.](https://github.com/AlessandroFare/Game-of-Life-Logisim) Works fast but small field doesn't allow construct a lot of setups. For example ["Pulsar"](https://conwaylife.com/wiki/Pulsar) or ["Copperhead"](https://playgameoflife.com/lexicon/copperhead):
 2. [Web version](https://conwaylife.com/) - fast and convenient. Has endless field. Alas, we do not have similar capacities
-3. In [this video](https://www.youtube.com/watch?v=FiO6jkNkrb4) you can see Turing machine, 1D and 3D version, CPU-like version and so on.
+3. In [this video](https://www.youtube.com/watch?v=FiO6jkNkrb4) you can see Turing machine, 1D and 3D versions, wire version and so on.
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -211,6 +211,7 @@ There are some special terms that are used in different places below:
    - environment for full row (`all X in range [0, 31]`) `Y` will be full rows `Y-1`, `Y` and `Y+1`
 2. **Environment sum** is a sum of cells' values from environment border
 3. **Significant environment** is an environment which has at least one cell with value `1` (**including border cells**)
+4. **Static generation** is a field setup and rules under which no changes are possible
 
 *[Back to table of contents](#table-of-contents)*
 
@@ -218,7 +219,7 @@ There are some special terms that are used in different places below:
 
 # Assembler
 ## Short description
-Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation `PSEUDO WRITE` register](#io-registers-for-changing-field)
+Due to optimization reasons CdM-8 has only 2 main tasks: iteration by `Y`,`X` positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to [update generation `PSEUDO WRITE` register](#io-registers-for-changing-field)
 
 **In ASM code we use `asect` constants like this:**
 ```
@@ -239,10 +240,10 @@ st r0, r0
 
 ## RAM distribution
 - `0xd0` - flag for checking non-static generation
-- `0xe0` - birth's conditions first byte
-- `0xe8` - death's conditions first byte
+- `0xe0` - birth's [spreaded](#spreadbyte) conditions first byte
+- `0xe8` - death's [spreaded](#spreadbyte) conditions first byte
 
-**Stack initial position - `0xe0`**
+**Stack initial position - `0xd0`**
 
 <details open>
 <summary>Constants for this cells</summary>
@@ -319,7 +320,7 @@ IOUpdateGeneration:
 ### Simulation start
 This part just waits whilst user presses start button and after it loads game conditions to RAM using [spreadByte subroutine](#spreadbyte)
 
-**For optimized conditions checking survival conditions [inverts to death's conditions](#simulation-rules). [See how it works here](#processbit)**
+For optimized conditions checking survival conditions [inverts](#simulation-rules) to death's conditions. See how this optimization works [here](#processbit).
 
 <details>
 <summary>Code</summary>
@@ -336,7 +337,7 @@ br start
 #===============================
 
 start:
-	# Move SP before I/O and field addresses
+	# Move SP before destributed cells
 	setsp 0xd0
 
 
@@ -375,7 +376,7 @@ Before cycle we reset flag in cell `isNonStaticGeneration` and update stable gen
 Main cycle iterates by `Y` (row index) in decreasing order `[31, 0]`.
 
 We use two optimizations for skipping meaningless iterations:
-1. If rows `Y-1`, `Y` and `Y+1` (rows environment) are null (flag from `IONullRowsEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) $\rArr$ we decrement `Y`.
+1. If rows `Y-1`, `Y` and `Y+1` (rows environment) are null (flag from `IONullRowsEnv` referred to [I/O register](#io-registers-with-environment-data) will be `1`) then we decrement `Y`.
 2. If rows environment isn't null we iterates by `X` with significant environment (surrounding sum > 0 or centre bit = 1) which are received from [`IONextSignificantX` I/O register](#io-registers-with-environment-data). When new received `X` >= current `X` we end cycle for this row 
 
 For every significant `(Y, X)` combination we get state of selected cell and its environment's sum using `IOBit` and `IOEnvSum` addresses which are referred to [I/O registers](#io-registers-with-environment-data)
@@ -384,7 +385,7 @@ For zero sum:
 - Alive cell is killed immediately using save signal `IOInvertBitSignal` [referred to Logisim](#io-registers-for-changing-field)
 - Empty cell is skipped
 
-For non-zero sum we call subroutine [`processBit`](#processbit)
+For non-zero sum we call [subroutine `processBit`](#processbit)
 
 **If there are no changed cells (value in `isNonStaticGeneration` will stay `0`) we make a conclusion that there is a static generation so we stop simulation [using save signal to game mode I/O register](#simulation-rules) and interrupt main cycle.**
 
@@ -394,6 +395,11 @@ For non-zero sum we call subroutine [`processBit`](#processbit)
 ```
 main:
 	
+	# Reset flag for non-static
+	ldi r0, isNonStaticGeneration
+	ldi r1, 0
+	st r0, r1
+
 	# Update stable generation's buffer to get new data from env. data constructor
 	ldi r0, IOUpdateGeneration
 	st r0, r0
@@ -486,6 +492,9 @@ bnz main
 ldi r0, IOGameMode
 st r0, r0
 br start
+
+halt
+end
 ```
 
 </details>
@@ -511,7 +520,7 @@ spreadByte:
 	ldi r3, 0b00001000 # 8
 	while
 		tst r3
-	is nz
+	stays nz
 		# The process of spreading byte
 		# Get lower bit and save to current cell
 		ldi r2, 0b00000001
@@ -641,7 +650,7 @@ This circuit contains:
 
 ### Coordinates bus
 Most of circuits work with coordinates `Y` (row index) and `X` (bit index) and coordinates go from 2 sources:
-- When simulation off they go from [keyboard controller](#keyboard-controller) which handles [user's inputs](#controls)
+- When simulation off they go from [keyboard controller](#keyboard-controller) which handles user's inputs
 - When simulation on they go from [2 I/O registers](#processed-cell)
 
 Therefore we use two multiplexers that choose coordinates source depending on simulation state:
@@ -664,9 +673,10 @@ Clear button clears all field when simulation is off.
 
 Keyboard Logisim circuit sends keys' ASCII codes to engine. See more below.
 
-On bottom-right side we can see two LED indicators:
+On bottom-right side we can see 3 LED indicators:
 1. State of cell under the blinking cursor
 2. Simulation state (when simulation is on indicator will light)
+3. Static generation flag. When static generation was reached simulations interrupts and this indicator lights up
 
 ### Keyboard
 Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [Keyboard controller](#keyboard-controller) inside engine circuit
@@ -710,7 +720,7 @@ I/O bus have minor changes: selection of I/O addresses from CPU `addr` is detect
 Registers have trivial types of data direction: `READ ONLY` and `WRITE ONLY`.
 
 #### `PSEUDO WRITE`
-Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handle `write` signal by CdM-8's `st` instruction.
+Besides these types we use one specific type - `PSEUDO WRITE`. CPU cannot write data to this "registers". Main goal for this type is handling `write` signal by CdM-8's `st` instruction.
 
 
 ### Short description table
@@ -761,7 +771,7 @@ These "registers" aren't exist. There are just tunnels which are connected to [e
 
 #### I/O "registers" for changing field
 - `0xf9` - PSEUDO WRITE - save signal to this cell will trigger [random write buffer](#random-write-buffer) and change cell `(Y, X)` using [row's bit invertor](#rows-bit-invertor)
-- `0xfa` - PSEUDO WRITE - save signal to this cell will update [generation buffer](#stable-generations-buffer)
+- `0xfa` - PSEUDO WRITE - save signal to this cell will update [stable generation's buffer](#stable-generations-buffer)
 
 <img src="./IO-change-signals.png" width="99%" alt="I/O 'registers' for changing field">
 
@@ -777,13 +787,15 @@ This circuit considers 7-bit ASCII input as ASCII code and compares it with cons
 
 See keyboard layouts [here](#keyboard-layouts)
 
+**For letters layout lowercase letters are transformed to uppercase using comparator, subtractor and multiplexer**
+
 **Circuit screenshot:**
 
 <img src="./keyboard-controller-circuit.png" width="99%" alt="Keyboard controller circuit">
 
 **Usage in Engine circuit:**
 Keyboard controller gives user signals that are used while simulation if off:
-- Y and X for [coordinates bus] 
+- Y and X for [coordinates bus](#coordinates-bus)
 - Switch signal which is implemented as `Write row` in [random write buffer](#random-write-buffer)
 
 <img width="80%" src="./keyboard-controller-usage.png">

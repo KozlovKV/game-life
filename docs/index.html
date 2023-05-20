@@ -539,7 +539,7 @@ blockquote {
 <div class="break"></div>
 <h1 id="introduction">Introduction</h1>
 <p>Realization of &quot;Conway's game of life&quot; using Logisim and Cdm-8.</p>
-<p>&quot;Conway's game of life&quot; is a cellural automaton. This is a zero player game, player set an initial condition and then only can observe the development.</p>
+<p>&quot;Conway's game of life&quot; is a cellural automaton. This is an auto-playable game. Player set an initial condition and then only can observe the development.</p>
 <p><strong>Rules:</strong></p>
 <ol>
 <li>The field of &quot;Game of life&quot; is a grid of square cells. Each cell has two conditions it can be live or dead.</li>
@@ -587,7 +587,7 @@ blockquote {
 <ol>
 <li><a href="https://github.com/AlessandroFare/Game-of-Life-Logisim">Version is full madden in Logisim with toroidal field <code>16</code>*<code>16</code>.</a> Works fast but small field doesn't allow construct a lot of setups. For example <a href="https://conwaylife.com/wiki/Pulsar">&quot;Pulsar&quot;</a> or <a href="https://playgameoflife.com/lexicon/copperhead">&quot;Copperhead&quot;</a>:</li>
 <li><a href="https://conwaylife.com/">Web version</a> - fast and convenient. Has endless field. Alas, we do not have similar capacities</li>
-<li>In <a href="https://www.youtube.com/watch?v=FiO6jkNkrb4">this video</a> you can see Turing machine, 1D and 3D version, CPU-like version and so on.</li>
+<li>In <a href="https://www.youtube.com/watch?v=FiO6jkNkrb4">this video</a> you can see Turing machine, 1D and 3D versions, wire version and so on.</li>
 </ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
@@ -663,12 +663,13 @@ blockquote {
 </li>
 <li><strong>Environment sum</strong> is a sum of cells' values from environment border</li>
 <li><strong>Significant environment</strong> is an environment which has at least one cell with value <code>1</code> (<strong>including border cells</strong>)</li>
+<li><strong>Static generation</strong> is a field setup and rules under which no changes are possible</li>
 </ol>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h1 id="assembler">Assembler</h1>
 <h2 id="short-description">Short description</h2>
-<p>Due to optimization reasons CdM-8 has only one main task - iteration by Y,X positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to <a href="#io-registers-for-changing-field">update generation <code>PSEUDO WRITE</code> register</a></p>
+<p>Due to optimization reasons CdM-8 has only 2 main tasks: iteration by <code>Y</code>,<code>X</code> positions and determination whether cell should be changed. After the all cells' processing CdM-8 send signal to <a href="#io-registers-for-changing-field">update generation <code>PSEUDO WRITE</code> register</a></p>
 <p><strong>In ASM code we use <code>asect</code> constants like this:</strong></p>
 <pre class='hljs'><code><div>asect 8
 constSample:
@@ -685,10 +686,10 @@ st r0, r0
 <h2 id="ram-distribution">RAM distribution</h2>
 <ul>
 <li><code>0xd0</code> - flag for checking non-static generation</li>
-<li><code>0xe0</code> - birth's conditions first byte</li>
-<li><code>0xe8</code> - death's conditions first byte</li>
+<li><code>0xe0</code> - birth's <a href="#spreadbyte">spreaded</a> conditions first byte</li>
+<li><code>0xe8</code> - death's <a href="#spreadbyte">spreaded</a> conditions first byte</li>
 </ul>
-<p><strong>Stack initial position - <code>0xe0</code></strong></p>
+<p><strong>Stack initial position - <code>0xd0</code></strong></p>
 <details open>
 <summary>Constants for this cells</summary>
 <pre class='hljs'><code><div># Internal data addresses
@@ -750,7 +751,7 @@ IOUpdateGeneration:
 <h2 id="code-description">Code description</h2>
 <h3 id="simulation-start">Simulation start</h3>
 <p>This part just waits whilst user presses start button and after it loads game conditions to RAM using <a href="#spreadbyte">spreadByte subroutine</a></p>
-<p><strong>For optimized conditions checking survival conditions <a href="#simulation-rules">inverts to death's conditions</a>. <a href="#processbit">See how it works here</a></strong></p>
+<p>For optimized conditions checking survival conditions <a href="#simulation-rules">inverts</a> to death's conditions. See how this optimization works <a href="#processbit">here</a>.</p>
 <details>
 <summary>Code</summary>
 <br>
@@ -764,7 +765,7 @@ br start
 #===============================
 
 start:
-	# Move SP before I/O and field addresses
+	# Move SP before destributed cells
 	setsp 0xd0
 
 
@@ -797,7 +798,7 @@ start:
 <p>Main cycle iterates by <code>Y</code> (row index) in decreasing order <code>[31, 0]</code>.</p>
 <p>We use two optimizations for skipping meaningless iterations:</p>
 <ol>
-<li>If rows <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> (rows environment) are null (flag from <code>IONullRowsEnv</code> referred to <a href="#io-registers-with-environment-data">I/O register</a> will be <code>1</code>) $\rArr$ we decrement <code>Y</code>.</li>
+<li>If rows <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> (rows environment) are null (flag from <code>IONullRowsEnv</code> referred to <a href="#io-registers-with-environment-data">I/O register</a> will be <code>1</code>) then we decrement <code>Y</code>.</li>
 <li>If rows environment isn't null we iterates by <code>X</code> with significant environment (surrounding sum &gt; 0 or centre bit = 1) which are received from <a href="#io-registers-with-environment-data"><code>IONextSignificantX</code> I/O register</a>. When new received <code>X</code> &gt;= current <code>X</code> we end cycle for this row</li>
 </ol>
 <p>For every significant <code>(Y, X)</code> combination we get state of selected cell and its environment's sum using <code>IOBit</code> and <code>IOEnvSum</code> addresses which are referred to <a href="#io-registers-with-environment-data">I/O registers</a></p>
@@ -806,12 +807,17 @@ start:
 <li>Alive cell is killed immediately using save signal <code>IOInvertBitSignal</code> <a href="#io-registers-for-changing-field">referred to Logisim</a></li>
 <li>Empty cell is skipped</li>
 </ul>
-<p>For non-zero sum we call subroutine <a href="#processbit"><code>processBit</code></a></p>
+<p>For non-zero sum we call <a href="#processbit">subroutine <code>processBit</code></a></p>
 <p><strong>If there are no changed cells (value in <code>isNonStaticGeneration</code> will stay <code>0</code>) we make a conclusion that there is a static generation so we stop simulation <a href="#simulation-rules">using save signal to game mode I/O register</a> and interrupt main cycle.</strong></p>
 <details>
 <summary>Code</summary>
 <pre class='hljs'><code><div>main:
 	
+	# Reset flag for non-static
+	ldi r0, isNonStaticGeneration
+	ldi r1, 0
+	st r0, r1
+
 	# Update stable generation's buffer to get new data from env. data constructor
 	ldi r0, IOUpdateGeneration
 	st r0, r0
@@ -904,6 +910,9 @@ bnz main
 ldi r0, IOGameMode
 st r0, r0
 br start
+
+halt
+end
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -924,7 +933,7 @@ to cells from <code>r1</code> to <code>r1 + 7</code>, writing the low order bit 
 	ldi r3, 0b00001000 # 8
 	while
 		tst r3
-	is nz
+	stays nz
 		# The process of spreading byte
 		# Get lower bit and save to current cell
 		ldi r2, 0b00000001
@@ -1071,7 +1080,7 @@ rts
 <h3 id="coordinates-bus">Coordinates bus</h3>
 <p>Most of circuits work with coordinates <code>Y</code> (row index) and <code>X</code> (bit index) and coordinates go from 2 sources:</p>
 <ul>
-<li>When simulation off they go from <a href="#keyboard-controller">keyboard controller</a> which handles <a href="#controls">user's inputs</a></li>
+<li>When simulation off they go from <a href="#keyboard-controller">keyboard controller</a> which handles user's inputs</li>
 <li>When simulation on they go from <a href="#processed-cell">2 I/O registers</a></li>
 </ul>
 <p>Therefore we use two multiplexers that choose coordinates source depending on simulation state:</p>
@@ -1085,10 +1094,11 @@ rts
 <p>Two 8-bit inputs let us set different conditions for birth and survival. Bit value <code>1</code> on position <code>N</code> means fulfilling of conditions when cell has <code>N</code> neighbors so this inputs represent bit arrays.</p>
 <p>Clear button clears all field when simulation is off.</p>
 <p>Keyboard Logisim circuit sends keys' ASCII codes to engine. See more below.</p>
-<p>On bottom-right side we can see two LED indicators:</p>
+<p>On bottom-right side we can see 3 LED indicators:</p>
 <ol>
 <li>State of cell under the blinking cursor</li>
 <li>Simulation state (when simulation is on indicator will light)</li>
+<li>Static generation flag. When static generation was reached simulations interrupts and this indicator lights up</li>
 </ol>
 <h3 id="keyboard">Keyboard</h3>
 <p>Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to <a href="#keyboard-controller">Keyboard controller</a> inside engine circuit</p>
@@ -1168,7 +1178,7 @@ rts
 <p><strong>All types' names are regarding the CPU directions</strong></p>
 <p>Registers have trivial types of data direction: <code>READ ONLY</code> and <code>WRITE ONLY</code>.</p>
 <h4 id="pseudo-write"><code>PSEUDO WRITE</code></h4>
-<p>Besides these types we use one specific type - <code>PSEUDO WRITE</code>. CPU cannot write data to this &quot;registers&quot;. Main goal for this type is handle <code>write</code> signal by CdM-8's <code>st</code> instruction.</p>
+<p>Besides these types we use one specific type - <code>PSEUDO WRITE</code>. CPU cannot write data to this &quot;registers&quot;. Main goal for this type is handling <code>write</code> signal by CdM-8's <code>st</code> instruction.</p>
 <h3 id="short-description-table">Short description table</h3>
 <table>
 <thead>
@@ -1287,7 +1297,7 @@ rts
 <h4 id="io-registers-for-changing-field">I/O &quot;registers&quot; for changing field</h4>
 <ul>
 <li><code>0xf9</code> - PSEUDO WRITE - save signal to this cell will trigger <a href="#random-write-buffer">random write buffer</a> and change cell <code>(Y, X)</code> using <a href="#rows-bit-invertor">row's bit invertor</a></li>
-<li><code>0xfa</code> - PSEUDO WRITE - save signal to this cell will update <a href="#stable-generations-buffer">generation buffer</a></li>
+<li><code>0xfa</code> - PSEUDO WRITE - save signal to this cell will update <a href="#stable-generations-buffer">stable generation's buffer</a></li>
 </ul>
 <img src="./IO-change-signals.png" width="99%" alt="I/O 'registers' for changing field">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -1300,12 +1310,13 @@ rts
 <li>Send switch signal for switching the cell's state</li>
 </ul>
 <p>See keyboard layouts <a href="#keyboard-layouts">here</a></p>
+<p><strong>For letters layout lowercase letters are transformed to uppercase using comparator, subtractor and multiplexer</strong></p>
 <p><strong>Circuit screenshot:</strong></p>
 <img src="./keyboard-controller-circuit.png" width="99%" alt="Keyboard controller circuit">
 <p><strong>Usage in Engine circuit:</strong>
 Keyboard controller gives user signals that are used while simulation if off:</p>
 <ul>
-<li>Y and X for [coordinates bus]</li>
+<li>Y and X for <a href="#coordinates-bus">coordinates bus</a></li>
 <li>Switch signal which is implemented as <code>Write row</code> in <a href="#random-write-buffer">random write buffer</a></li>
 </ul>
 <img width="80%" src="./keyboard-controller-usage.png">
