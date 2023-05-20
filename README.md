@@ -13,4 +13,4 @@ Created by *Kozlov Kirill* and *Palking Egor* (group `22215`) in 2023.
 
 ## Presentation
 - [Google slides version](https://docs.google.com/presentation/d/1QZTgbPYlnSVkZEdg4eGlc-LxBSFEysygqDjBKPxbbGE/edit?usp=sharing)
-- [Power point dump and sources]()
+- [Power point dump and sources](https://disk.yandex.ru/d/V9YYzdOTcSg1IQ)
