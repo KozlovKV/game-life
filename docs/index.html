@@ -524,10 +524,10 @@ blockquote {
 <ul>
 <li><a href="#keyboard-controller">Keyboard controller</a></li>
 <li><a href="#random-write-buffer">Random write buffer</a></li>
+<li><a href="#rows-bit-invertor">Row's bit invertor</a></li>
 <li><a href="#stable-generations-buffer">Stable generation's buffer</a></li>
 <li><a href="#row-environment-mask">Row environment mask</a></li>
 <li><a href="#environment-data-constructor">Environment data constructor</a></li>
-<li><a href="#rows-bit-invertor">Row's bit invertor</a></li>
 <li><a href="#binary-selector">Binary selector</a></li>
 <li><a href="#blinker">Blinker</a></li>
 </ul>
@@ -1343,6 +1343,20 @@ In engine we get input row through tunnel from <a href="#rows-bit-invertor">row'
 <img src="./RWB-usage.png" width="99%" alt="Usage in Engine">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
+<p><span id="rows-bit-invertor"></span></p>
+<h3 id="row's-bit-invertor">Row's bit invertor</h3>
+<p>This circuit gets 32 32-bit rows and 5-bit coordinates Y and X. Returns Y row with inverted bit on position X. <strong>For inversion we use decoder constructed bit mask and XOR</strong></p>
+<p><strong>Circuit screenshots:</strong></p>
+<div class="columns">
+	<img width="25%" src="./RBI-circuit-1.png">
+	<img width="70%" src="./RBI-circuit-2.png">
+</div>
+<p><strong>Usage in Engine circuit:</strong>
+32 input rows goes from <a href="#random-write-buffer">random write buffer</a> and inverted row goes through tunnel to <code>input row</code> of <a href="#random-write-buffer">random write buffer</a></p>
+<p>Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
+<img width="40%" src="./RBI-usage.png">
+<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
+<div class="break"></div>
 <p><span id="stable-generations-buffer"></span></p>
 <h3 id="stable-generation's-buffer">Stable generation's buffer</h3>
 <p>This buffer just saves 32 32-bit rows from inputs to registers and sends them to 32 outputs. Saving occurs on rising edge of input <code>Save generation trigger</code></p>
@@ -1359,24 +1373,24 @@ Buffer update depends on simulation state:</p>
 <div class="break"></div>
 <h3 id="row-environment-mask">Row environment mask</h3>
 <p>This circuit gets 1 32-bit row and gives 1 32-bit row where <code>i</code> bit is <code>1</code> when in input row at least one of <code>i-1</code>, <code>i</code>, <code>i+1</code> bits is <code>1</code> (<code>OR</code> gate on splitter outputs). <strong>So, result row let us easily detect bit with significant environment.</strong></p>
-<p><strong>Circuit screenshot and usage:</strong> this circuit is used in <a href="#environment-data-constructor">environment data constructor</a> for detecting next <code>X</code> with significant environment by priority encoder.</p>
+<p><strong>Circuit screenshot and its usage:</strong> this circuit is used in <a href="#environment-data-constructor">environment data constructor</a> for detecting next <code>X</code> with significant environment by priority encoder.</p>
 <div class="columns">
 	<img width="33%" src="./REM-circuit.png">
 	<img width="60%" src="./REM-usage.png">
 </div>
 <h3 id="environment-data-constructor">Environment data constructor</h3>
-<p>Job of this circuit is constructing data about cell's environment for <a href="#main-cycle">optimized new generation's counting in CdM-8</a>.</p>
+<p>Purpose of this circuit is constructing data about cell's environment for <a href="#main-cycle">optimized new generation's counting in CdM-8</a>.</p>
 <p>It has 32 32-bit inputs for rows and 5-bit <code>Y</code>, <code>X</code> inputs and works by this steps:</p>
 <ol>
-<li>Get rows <code>Y-1</code>, <code>Y</code> and <code>Y</code> using multiplexers</li>
-<li>Right cycled shift 3 rows on <code>X-1</code> positions to get <code>X-1</code>, <code>X</code> and <code>X+1</code> bits on <code>0</code>, <code>1</code> and <code>2</code>
+<li>Get rows <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> using multiplexers</li>
+<li>Right cycled shift 3 rows on <code>X-1</code> positions to get <code>X-1</code>, <code>X</code> and <code>X+1</code> bits on <code>0</code>, <code>1</code> and <code>2</code> positions
 <ol>
 <li>Send bit <code>1</code> from middle row to centre bit output</li>
 <li>Use bits <code>[0,2]</code> from top and bottom rows and bits <code>0</code> and <code>2</code> from middle row as carry signals for 8 8-bit adders to get sum of cells surrounding centre bit</li>
 </ol>
 </li>
-<li>Get common row from <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> rows using <code>OR</code> gate for analyzing environment. It is name <strong>environment row</strong></li>
-<li>Construct environment mask from environment row using <a href="#row-environment-mask">row environment mask circuit</a> and shift it right on 1 bit to get <code>X-1</code> bit on <code>31</code>th position</li>
+<li>Get common row from <code>Y-1</code>, <code>Y</code> and <code>Y+1</code> rows using <code>OR</code> gate for analyzing environment. It is named <strong>environment row</strong></li>
+<li>Construct environment mask from environment row using <a href="#row-environment-mask">row environment mask circuit</a> and shift it right on 1 bit to get <code>X-1</code> bit on the <code>31</code>th position</li>
 <li>This row goes to priority encoder that determines 2 values:
 <ol>
 <li>If environment mask row is null encoder send true on <code>is row env. null</code> output</li>
@@ -1385,27 +1399,13 @@ Buffer update depends on simulation state:</p>
 </li>
 </ol>
 <p><strong>Circuit screenshots:</strong></p>
-<img src="./env-constructor-circuit-1.png" width="99%" alt="Environment data constructor 1">
+<img src="./env-constructor-circuit-1.png" width="60%" alt="Environment data constructor 1">
 <img src="./env-constructor-circuit-2.png" width="99%" alt="Environment data constructor 2">
 <p><strong>Usage in Engine circuit:</strong>
 Environment data constructor is connected to rows after <a href="#stable-generations-buffer">stable generation's buffer</a> to ensure that CPU works with stable generation.</p>
 <p>All outputs go through tunnels to <a href="#io-registers-with-environment-data">I/O registers</a> that are used in <a href="#main-cycle">ASM main cycle</a></p>
 <p>Y and X go from <a href="#coordinates-bus">coordinates bus</a> but while simulation is off environment data isn't used.</p>
 <img width="66%" src="./env-constructor-usage.png">
-<p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<div class="break"></div>
-<p><span id="rows-bit-invertor"></span></p>
-<h3 id="row's-bit-invertor">Row's bit invertor</h3>
-<p>This circuit gets 32 32-bit rows and 5 bit coordinates Y and X. Returns Y row with inverted bit on position X. <strong>For inversion we use decoder constructed bit mask and XOR</strong></p>
-<p><strong>Circuit screenshots:</strong></p>
-<div class="columns">
-	<img width="25%" src="./RBI-circuit-1.png">
-	<img width="70%" src="./RBI-circuit-2.png">
-</div>
-<p><strong>Usage in Engine circuit:</strong>
-32 input rows goes from <a href="#random-write-buffer">random write buffer</a> and inverted row goes through tunnel to <code>input row</code> of <a href="#random-write-buffer">random write buffer</a></p>
-<p>Y and X go from <a href="#coordinates-bus">coordinates bus</a></p>
-<img width="66%" src="./RBI-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
 <h3 id="binary-selector">Binary selector</h3>
@@ -1452,7 +1452,8 @@ Input <code>switch</code> handles clock signal. Y and X go from <a href="#coordi
 <div class="break"></div>
 <h1 id="conclusion">Conclusion</h1>
 <p>The version described above works in direct proportion to the number of cells. So, for the large setups one frame processing can take up to 200 seconds. It's long, but there are no ways for the significant optimization saving this architecture.</p>
-<p>Therefore, we declare that we have done optimally working version of &quot;Conway's game of life&quot; using Logisim and CdM-8 as technical stack.</p>
+<p>Therefore, we declare that we have done optimally working version of &quot;Conway's game of life&quot; with an enlarged field and the ability to change birth and survival conditions.</p>
+<p>For the creating we used Logisim and CdM-8 as technical stack.</p>
 
 </body>
 </html>
