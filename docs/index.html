@@ -538,7 +538,7 @@ blockquote {
 </ul>
 <div class="break"></div>
 <h1 id="introduction">Introduction</h1>
-<p>Realization of &quot;Conway's game of life&quot; using Logisim and Cdm-8.</p>
+<p>Realization of &quot;Conway's game of life&quot; using Logisim and CdM-8.</p>
 <p>&quot;Conway's game of life&quot; is a cellural automaton. This is an auto-playable game. Player set an initial condition and then only can observe the development.</p>
 <p><strong>Rules:</strong></p>
 <ol>
@@ -606,26 +606,6 @@ blockquote {
 </thead>
 <tbody>
 <tr>
-<td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
-<td style="text-align:center">bottom-left</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 2</code> / <code>S</code></td>
-<td style="text-align:center">bottom</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
-<td style="text-align:center">bottom-right</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
-<td style="text-align:center">left</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
-<td style="text-align:center">right</td>
-</tr>
-<tr>
 <td style="text-align:center"><code>NUM 7</code> / <code>Q</code></td>
 <td style="text-align:center">top-left</td>
 </tr>
@@ -636,6 +616,26 @@ blockquote {
 <tr>
 <td style="text-align:center"><code>NUM 9</code> / <code>E</code></td>
 <td style="text-align:center">top-right</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
+<td style="text-align:center">left</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
+<td style="text-align:center">right</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
+<td style="text-align:center">bottom-left</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 2</code> / <code>S</code></td>
+<td style="text-align:center">bottom</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
+<td style="text-align:center">bottom-right</td>
 </tr>
 </tbody>
 </table>
@@ -704,7 +704,6 @@ isNonStaticGeneration:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<div class="break"></div>
 <h3 id="cells-referring-to-io-regs">Cells referring to I/O regs.</h3>
 <p>Cells from <code>0xf0</code> to <code>0xff</code> are allocated for I/O registers.</p>
 <p><strong>See detailed description in <a href="#short-description-table">Logisim topic</a></strong></p>
@@ -747,7 +746,6 @@ IOUpdateGeneration:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<div class="break"></div>
 <h2 id="code-description">Code description</h2>
 <h3 id="simulation-start">Simulation start</h3>
 <p>This part just waits whilst user presses start button and after it loads game conditions to RAM using <a href="#spreadbyte">spreadByte subroutine</a></p>
@@ -791,7 +789,6 @@ start:
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<div class="break"></div>
 <h3 id="main-cycle">Main cycle</h3>
 <p>This part will repeats while simulations stays on.</p>
 <p>Before cycle we reset flag in cell <code>isNonStaticGeneration</code> and update stable generation's buffer using save signal to <code>IOUpdateGeneration</code> <a href="#io-registers-for-changing-field">referred to Logisim</a>. As a result, we can get correct data for processing cells.</p>
@@ -916,7 +913,6 @@ end
 </div></code></pre>
 </details>
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
-<div class="break"></div>
 <h3 id="subroutines">Subroutines</h3>
 <h4 id="spreadbyte"><code>spreadByte</code></h4>
 <ul>
@@ -1055,7 +1051,7 @@ rts
 </div>
 <p>This circuit contains:</p>
 <ol>
-<li>Most of all circuits below with connected to them <a href="#coordinates-bus">coordinates bus</a> (<em>excepting <a href="#binary-selector">binary selector</a> and <a href="#row-environment-mask">row environment mask</a></em>):
+<li>Most of all circuits described below with connected to them <a href="#coordinates-bus">coordinates bus</a> (<em>excepting <a href="#binary-selector">binary selector</a> and <a href="#row-environment-mask">row environment mask</a></em>):
 <ul>
 <li>
 <img src="./engine-subcircuits.png" width="99%" alt="Subcircuits in engine">
@@ -1092,12 +1088,12 @@ rts
 <img width="66%" src="./main.png">
 <p>Simulations switch button switches between simulation and setting modes. <strong>When we turn from simulation to setting mode we can get unfinished new generation</strong></p>
 <p>Two 8-bit inputs let us set different conditions for birth and survival. Bit value <code>1</code> on position <code>N</code> means fulfilling of conditions when cell has <code>N</code> neighbors so this inputs represent bit arrays.</p>
-<p>Clear button clears all field when simulation is off.</p>
+<p>Clear button clears all field when simulation off.</p>
 <p>Keyboard Logisim circuit sends keys' ASCII codes to engine. See more below.</p>
 <p>On bottom-right side we can see 3 LED indicators:</p>
 <ol>
 <li>State of cell under the blinking cursor</li>
-<li>Simulation state (when simulation is on indicator will light)</li>
+<li>Simulation state (when simulation on indicator will light)</li>
 <li>Static generation flag. When static generation was reached simulations interrupts and this indicator lights up</li>
 </ol>
 <h3 id="keyboard">Keyboard</h3>
@@ -1116,36 +1112,6 @@ rts
 </thead>
 <tbody>
 <tr>
-<td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
-<td style="text-align:center">bottom-left</td>
-<td style="text-align:center"><code>+1</code></td>
-<td style="text-align:center"><code>+1</code></td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 2</code> / <code>S</code></td>
-<td style="text-align:center">bottom</td>
-<td style="text-align:center"><code>0</code></td>
-<td style="text-align:center"><code>+1</code></td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
-<td style="text-align:center">bottom-right</td>
-<td style="text-align:center"><code>-1</code></td>
-<td style="text-align:center"><code>+1</code></td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
-<td style="text-align:center">left</td>
-<td style="text-align:center"><code>+1</code></td>
-<td style="text-align:center"><code>0</code></td>
-</tr>
-<tr>
-<td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
-<td style="text-align:center">right</td>
-<td style="text-align:center"><code>-1</code></td>
-<td style="text-align:center"><code>0</code></td>
-</tr>
-<tr>
 <td style="text-align:center"><code>NUM 7</code> / <code>Q</code></td>
 <td style="text-align:center">top-left</td>
 <td style="text-align:center"><code>+1</code></td>
@@ -1162,6 +1128,36 @@ rts
 <td style="text-align:center">top-right</td>
 <td style="text-align:center"><code>-1</code></td>
 <td style="text-align:center"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 4</code> / <code>A</code></td>
+<td style="text-align:center">left</td>
+<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>0</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 6</code> / <code>D</code></td>
+<td style="text-align:center">right</td>
+<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>0</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 1</code> / <code>Z</code></td>
+<td style="text-align:center">bottom-left</td>
+<td style="text-align:center"><code>+1</code></td>
+<td style="text-align:center"><code>+1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 2</code> / <code>S</code></td>
+<td style="text-align:center">bottom</td>
+<td style="text-align:center"><code>0</code></td>
+<td style="text-align:center"><code>+1</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>NUM 3</code> / <code>C</code></td>
+<td style="text-align:center">bottom-right</td>
+<td style="text-align:center"><code>-1</code></td>
+<td style="text-align:center"><code>+1</code></td>
 </tr>
 </tbody>
 </table>
@@ -1333,12 +1329,12 @@ Keyboard controller gives user signals that are used while simulation if off:</p
 </div>
 <p><strong>Usage in Engine circuit:</strong>
 In engine we get input row through tunnel from <a href="#rows-bit-invertor">row's bit invertor</a></p>
-<p>Clear signal works while simulation is off.</p>
+<p>Clear signal works while simulation off.</p>
 <p>Y data goes from <a href="#coordinates-bus">coordinates bus</a></p>
 <p>Write row signal goes:</p>
 <ul>
-<li>From <a href="#keyboard-controller">keyboard controller</a> when simulation is off</li>
-<li>From <a href="#io-registers-for-changing-field">Register <code>0xf9</code></a> when simulation is on</li>
+<li>From <a href="#keyboard-controller">keyboard controller</a> when simulation off</li>
+<li>From CPU through <a href="#io-registers-for-changing-field"><code>PSEUDO WRITE</code> register</a> when simulation on</li>
 </ul>
 <img src="./RWB-usage.png" width="99%" alt="Usage in Engine">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -1365,8 +1361,8 @@ In engine we get input row through tunnel from <a href="#rows-bit-invertor">row'
 <p><strong>Circuit usage in Engine:</strong>
 Buffer update depends on simulation state:</p>
 <ul>
-<li>While simulation is off buffer is updated by <code>clock</code></li>
-<li>While simulation is on buffer is updated after <a href="#main-cycle">CdM-8 main cycle's full execution</a> by signal from <a href="#io-registers-for-changing-field">pseudo I/O register</a></li>
+<li>While simulation off buffer is updated by <code>clock</code></li>
+<li>While simulation on buffer is updated after <a href="#main-cycle">CdM-8 main cycle's full execution</a> by signal from <a href="#io-registers-for-changing-field">pseudo I/O register</a></li>
 </ul>
 <img width="66%" src="./SGB-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
@@ -1404,7 +1400,7 @@ Buffer update depends on simulation state:</p>
 <p><strong>Usage in Engine circuit:</strong>
 Environment data constructor is connected to rows after <a href="#stable-generations-buffer">stable generation's buffer</a> to ensure that CPU works with stable generation.</p>
 <p>All outputs go through tunnels to <a href="#io-registers-with-environment-data">I/O registers</a> that are used in <a href="#main-cycle">ASM main cycle</a></p>
-<p>Y and X go from <a href="#coordinates-bus">coordinates bus</a> but while simulation is off environment data isn't used.</p>
+<p>Y and X go from <a href="#coordinates-bus">coordinates bus</a> but while simulation off environment data isn't used.</p>
 <img width="66%" src="./env-constructor-usage.png">
 <p><em><a href="#table-of-contents">Back to table of contents</a></em></p>
 <div class="break"></div>
@@ -1453,7 +1449,7 @@ Input <code>switch</code> handles clock signal. Y and X go from <a href="#coordi
 <h1 id="conclusion">Conclusion</h1>
 <p>The version described above works in direct proportion to the number of cells. So, for the large setups one frame processing can take up to 200 seconds. It's long, but there are no ways for the significant optimization saving this architecture.</p>
 <p>Therefore, we declare that we have done optimally working version of &quot;Conway's game of life&quot; with an enlarged field and the ability to change birth and survival conditions.</p>
-<p>For the creating we used Logisim and CdM-8 as technical stack.</p>
+<p><a href="https://youtube.com/playlist?list=PLDhl_0J_pOB6pKnyzgsWQFe0B4UdmtTDi">Here</a> you can see different interesting setups.</p>
 
 </body>
 </html>

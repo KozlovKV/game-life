@@ -113,7 +113,7 @@
 <div class="break"></div>
 
 # Introduction
-Realization of "Conway's game of life" using Logisim and Cdm-8.
+Realization of "Conway's game of life" using Logisim and CdM-8.
 
 "Conway's game of life" is a cellural automaton. This is an auto-playable game. Player set an initial condition and then only can observe the development.
 
@@ -182,14 +182,14 @@ We have found 3 interesting versions of "Conway's game of life" in the Internet
 
 KEY           | DIRECTION    |
 :-:           | :-:          |
-`NUM 1` / `Z` | bottom-left  |
-`NUM 2` / `S` | bottom       |
-`NUM 3` / `C` | bottom-right |
-`NUM 4` / `A` | left         |
-`NUM 6` / `D` | right        |
 `NUM 7` / `Q` | top-left     |
 `NUM 8` / `W` | top          |
 `NUM 9` / `E` | top-right    |
+`NUM 4` / `A` | left         |
+`NUM 6` / `D` | right        |
+`NUM 1` / `Z` | bottom-left  |
+`NUM 2` / `S` | bottom       |
+`NUM 3` / `C` | bottom-right |
 
 `NUM 5` / `Space` - change state of selected cell
 
@@ -263,8 +263,6 @@ isNonStaticGeneration:
 
 *[Back to table of contents](#table-of-contents)*
 
-<div class="break"></div>
-
 ### Cells referring to I/O regs.
 Cells from `0xf0` to `0xff` are allocated for I/O registers. 
 
@@ -314,8 +312,6 @@ IOUpdateGeneration:
 
 *[Back to table of contents](#table-of-contents)*
 
-<div class="break"></div>
-
 ## Code description
 ### Simulation start
 This part just waits whilst user presses start button and after it loads game conditions to RAM using [spreadByte subroutine](#spreadbyte)
@@ -364,8 +360,6 @@ start:
 </details>
 
 *[Back to table of contents](#table-of-contents)*
-
-<div class="break"></div>
 
 ### Main cycle
 
@@ -500,8 +494,6 @@ end
 </details>
 
 *[Back to table of contents](#table-of-contents)*
-
-<div class="break"></div>
 
 ### Subroutines
 #### `spreadByte`
@@ -641,7 +633,7 @@ This circuit is main one element of game. It handles [all inputs from user](#mai
 </div>
 
 This circuit contains:
-1. Most of all circuits below with connected to them [coordinates bus](#coordinates-bus) (*excepting [binary selector](#binary-selector) and [row environment mask](#row-environment-mask)*):
+1. Most of all circuits described below with connected to them [coordinates bus](#coordinates-bus) (*excepting [binary selector](#binary-selector) and [row environment mask](#row-environment-mask)*):
    - <img src="./engine-subcircuits.png" width="99%" alt="Subcircuits in engine">
 2. CdM-8 integration scheme with Harvard architecture: 
    - <img width="70%" src="./engine-cdm8-integration.png">
@@ -669,13 +661,13 @@ Simulations switch button switches between simulation and setting modes. **When 
 
 Two 8-bit inputs let us set different conditions for birth and survival. Bit value `1` on position `N` means fulfilling of conditions when cell has `N` neighbors so this inputs represent bit arrays.
 
-Clear button clears all field when simulation is off.
+Clear button clears all field when simulation off.
 
 Keyboard Logisim circuit sends keys' ASCII codes to engine. See more below.
 
 On bottom-right side we can see 3 LED indicators:
 1. State of cell under the blinking cursor
-2. Simulation state (when simulation is on indicator will light)
+2. Simulation state (when simulation on indicator will light)
 3. Static generation flag. When static generation was reached simulations interrupts and this indicator lights up
 
 ### Keyboard
@@ -687,14 +679,14 @@ Logisim circuits keyboard handles keys' presses and send 7-bit ASCII codes to [K
 Cursor moving:
 KEY           | DIRECTION    | X DELTA | Y DELTA
 :-:           | :-:          | :-:     | :-:
-`NUM 1` / `Z` | bottom-left  | `+1`    | `+1`
-`NUM 2` / `S` | bottom       | `0`     | `+1`
-`NUM 3` / `C` | bottom-right | `-1`    | `+1`
-`NUM 4` / `A` | left         | `+1`    | `0`
-`NUM 6` / `D` | right        | `-1`    | `0`
 `NUM 7` / `Q` | top-left     | `+1`    | `-1`
 `NUM 8` / `W` | top          | `0`     | `-1`
 `NUM 9` / `E` | top-right    | `-1`    | `-1`
+`NUM 4` / `A` | left         | `+1`    | `0`
+`NUM 6` / `D` | right        | `-1`    | `0`
+`NUM 1` / `Z` | bottom-left  | `+1`    | `+1`
+`NUM 2` / `S` | bottom       | `0`     | `+1`
+`NUM 3` / `C` | bottom-right | `-1`    | `+1`
 
 **Deltas defined as shown above because in matrix top-left cell has `X = 31` and `Y = 0`**
 
@@ -821,13 +813,13 @@ Clear signal resets all registers.
 **Usage in Engine circuit:**
 In engine we get input row through tunnel from [row's bit invertor](#rows-bit-invertor)
 
-Clear signal works while simulation is off.
+Clear signal works while simulation off.
 
 Y data goes from [coordinates bus](#coordinates-bus)
 
 Write row signal goes:
-- From [keyboard controller](#keyboard-controller) when simulation is off
-- From [Register `0xf9`](#io-registers-for-changing-field) when simulation is on
+- From [keyboard controller](#keyboard-controller) when simulation off
+- From CPU through [`PSEUDO WRITE` register](#io-registers-for-changing-field) when simulation on
 
 <img src="./RWB-usage.png" width="99%" alt="Usage in Engine">
 
@@ -869,8 +861,8 @@ This buffer just saves 32 32-bit rows from inputs to registers and sends them to
 
 **Circuit usage in Engine:**
 Buffer update depends on simulation state:
-- While simulation is off buffer is updated by `clock`
-- While simulation is on buffer is updated after [CdM-8 main cycle's full execution](#main-cycle) by signal from [pseudo I/O register](#io-registers-for-changing-field)
+- While simulation off buffer is updated by `clock`
+- While simulation on buffer is updated after [CdM-8 main cycle's full execution](#main-cycle) by signal from [pseudo I/O register](#io-registers-for-changing-field)
 
 <img width="66%" src="./SGB-usage.png">
 
@@ -913,7 +905,7 @@ Environment data constructor is connected to rows after [stable generation's buf
 
 All outputs go through tunnels to [I/O registers](#io-registers-with-environment-data) that are used in [ASM main cycle](#main-cycle)
 
-Y and X go from [coordinates bus](#coordinates-bus) but while simulation is off environment data isn't used.
+Y and X go from [coordinates bus](#coordinates-bus) but while simulation off environment data isn't used.
 
 <img width="66%" src="./env-constructor-usage.png">
 
@@ -976,4 +968,4 @@ The version described above works in direct proportion to the number of cells. S
 
 Therefore, we declare that we have done optimally working version of "Conway's game of life" with an enlarged field and the ability to change birth and survival conditions. 
 
-For the creating we used Logisim and CdM-8 as technical stack.
+[Here](https://youtube.com/playlist?list=PLDhl_0J_pOB6pKnyzgsWQFe0B4UdmtTDi) you can see different interesting setups.
